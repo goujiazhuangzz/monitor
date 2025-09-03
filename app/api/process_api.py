@@ -79,6 +79,39 @@ def stop_script():
         return jsonify({'error': str(e)}), 500
 
 
+@process_bp.route('/api/kill', methods=['POST'])
+def kill_process():
+    """
+    Kill any running process by PID (not limited to Python scripts)
+    """
+    data = request.get_json()
+    pid = data.get('pid')
+    
+    if not pid:
+        return jsonify({'error': 'PID is required'}), 400
+    
+    try:
+        pid = int(pid)
+        process = psutil.Process(pid)
+        
+        # Terminate the process
+        process.terminate()
+        process.wait(timeout=5)  # Wait up to 5 seconds for graceful termination
+        
+        # Clean up logger if exists
+        if pid in process_loggers:
+            del process_loggers[pid]
+        
+        return jsonify({
+            'success': True,
+            'message': f'Process {pid} terminated successfully'
+        })
+    except psutil.NoSuchProcess:
+        return jsonify({'error': 'Process not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @process_bp.route('/api/logs/<int:pid>')
 def script_logs(pid):
     """

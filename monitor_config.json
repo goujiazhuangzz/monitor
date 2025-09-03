@@ -1,13 +1,6 @@
 {
   "monitor_paths": [
-    ".",
-    "../scripts",
-    "../../projects",
-    "/mnt/d/shell/dns/207/main/"
+    "/Users/liuzhiqiang/shell/monitor/"
   ],
-  "exclude_patterns": [
-    "monitor.py",
-    "test_*.py",
-    "*_test.py"
-  ]
+  "exclude_patterns": []
 }

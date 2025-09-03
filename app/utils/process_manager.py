@@ -18,30 +18,48 @@ def get_python_processes():
     processes = []
     for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
         try:
-            # 检查进程是否为Python进程
-            if proc.info['name'] in ['python', 'python3', 'python.exe', 'python3.exe']:
+            # 检查进程是否为Python进程 - 改进检测逻辑
+            name = proc.info['name'].lower() if proc.info['name'] else ''
+            is_python_process = (
+                'python' in name or 
+                name in ['python', 'python3', 'python.exe', 'python3.exe']
+            )
+            
+            if is_python_process:
                 # 检查命令行参数
-                if proc.info['cmdline'] and len(proc.info['cmdline']) > 1:
-                    script_path = proc.info['cmdline'][1]
-                    # 获取脚本名称
-                    script_name = os.path.basename(script_path)
-                    
-                    # 检查是否为Python脚本
-                    if script_path.endswith('.py'):
+                cmdline = proc.info['cmdline']
+                if cmdline and len(cmdline) > 0:
+                    # 第一个参数通常是python解释器
+                    if len(cmdline) > 1:
+                        script_path = cmdline[1]
+                        # 获取脚本名称
+                        script_name = os.path.basename(script_path)
+                        
+                        # 检查是否为Python脚本
+                        if script_path.endswith('.py'):
+                            processes.append({
+                                'pid': proc.info['pid'],
+                                'script_name': script_name,
+                                'script_path': script_path,
+                                'cmdline': ' '.join(cmdline),
+                                'start_time': datetime.fromtimestamp(proc.info['create_time']).strftime('%Y-%m-%d %H:%M:%S')
+                            })
+                        # 也包括直接用python -c命令运行的情况
+                        elif '-c' in cmdline:
+                            processes.append({
+                                'pid': proc.info['pid'],
+                                'script_name': 'python -c command',
+                                'script_path': 'N/A',
+                                'cmdline': ' '.join(cmdline),
+                                'start_time': datetime.fromtimestamp(proc.info['create_time']).strftime('%Y-%m-%d %H:%M:%S')
+                            })
+                    else:
+                        # 只有python命令，没有脚本参数
                         processes.append({
                             'pid': proc.info['pid'],
-                            'script_name': script_name,
-                            'script_path': script_path,
-                            'cmdline': ' '.join(proc.info['cmdline']),
-                            'start_time': datetime.fromtimestamp(proc.info['create_time']).strftime('%Y-%m-%d %H:%M:%S')
-                        })
-                    # 也包括直接用python -c命令运行的情况
-                    elif '-c' in proc.info['cmdline']:
-                        processes.append({
-                            'pid': proc.info['pid'],
-                            'script_name': 'python -c command',
+                            'script_name': 'python interpreter',
                             'script_path': 'N/A',
-                            'cmdline': ' '.join(proc.info['cmdline']),
+                            'cmdline': ' '.join(cmdline),
                             'start_time': datetime.fromtimestamp(proc.info['create_time']).strftime('%Y-%m-%d %H:%M:%S')
                         })
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):

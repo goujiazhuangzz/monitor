@@ -56,4 +56,6 @@ fi
 # 启动监控工具
 echo "启动监控工具..."
 echo "请在浏览器中访问: http://localhost:5000"
-python3 run.py
+echo "如果5000端口被占用，可以使用其他端口，例如:"
+echo "  python3 run.py -p 5001"
+python3 run.py -p 5001

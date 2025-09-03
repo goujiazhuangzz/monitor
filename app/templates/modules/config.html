@@ -1,0 +1,28 @@
+<div id="config-tab" class="tab-content">
+    <div class="section">
+        <h2>监控配置</h2>
+        <form id="monitorConfigForm">
+            <div class="config-form">
+                <div class="config-item">
+                    <label>监控路径 (每行一个路径):</label>
+                    <textarea id="monitorPaths" placeholder="例如:
+.
+/home/user/scripts
+C:\Users\user\Documents\projects"></textarea>
+                    <div class="path-list" id="resolvedPaths">
+                        解析后的路径将显示在这里
+                    </div>
+                </div>
+                <div class="config-item">
+                    <label>排除模式 (每行一个模式):</label>
+                    <textarea id="excludePatterns" placeholder="例如:
+monitor.py
+test_*.py
+*_test.py"></textarea>
+                </div>
+                <button type="button" id="saveMonitorConfig" class="btn btn-config">保存配置</button>
+                <button type="button" id="loadMonitorConfig" class="btn btn-config">加载配置</button>
+            </div>
+        </form>
+    </div>
+</div>

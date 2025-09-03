@@ -12,6 +12,9 @@ def create_app():
     app = Flask(__name__)
     sock = Sock(app)
     
+    # Generate a random secret key for sessions
+    app.secret_key = os.urandom(24)
+    
     # 禁用 Flask 的开发服务器警告
     import sys
     cli = sys.modules.get('flask.cli')
@@ -58,26 +61,51 @@ def create_app():
             import json
             json.dump(default_config, f, indent=2)
     
+    # Initialize authentication
+    from app.utils.auth import AuthManager
+    app.auth_manager = AuthManager(app)
+    
     # Import and register blueprints
     from app.api.process_api import process_bp
     from app.api.script_api import script_bp
     from app.api.ssh_api import ssh_bp
     from app.api.system_api import system_bp
     from app.api.config_api import config_bp
+    from app.api.auth_api import auth_bp
     
     app.register_blueprint(process_bp)
     app.register_blueprint(script_bp)
     app.register_blueprint(ssh_bp)
     app.register_blueprint(system_bp)
     app.register_blueprint(config_bp)
+    app.register_blueprint(auth_bp)
     
     # Import and initialize WebSocket routes
     from app.api.ssh_websocket import init_ssh_websocket_routes
     init_ssh_websocket_routes(sock)
     
+    # Authentication decorator
+    def require_auth(f):
+        from functools import wraps
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            from flask import session, redirect, url_for
+            if 'username' not in session:
+                return redirect(url_for('auth.login'))
+            return f(*args, **kwargs)
+        return decorated_function
+    
+    # Apply authentication to index route
     @app.route('/')
+    @require_auth
     def index():
         from flask import render_template
         return render_template('index.html')
+    
+    # Add app reference to request context
+    @app.before_request
+    def before_request():
+        from flask import request
+        request.app = app
     
     return app, sock

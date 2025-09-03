@@ -93,6 +93,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // 系统信息折叠事件
     document.getElementById('toggleSystemInfo').addEventListener('click', toggleSystemInfo);
     
+    // SSH连接相关事件
+    document.getElementById('addSSHConnection').addEventListener('click', openSSHConfig);
+    document.getElementById('testConnection').addEventListener('click', testConnection);
+    
     // 每10秒自动刷新一次运行进程
     setInterval(() => {
         getRunningProcesses();
@@ -145,10 +149,16 @@ function showNotification(message, type) {
 // 获取系统信息
 function getSystemInfo() {
     fetch('/api/system/info')
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.error) {
-                console.error('Error fetching system info:', data.error);
+            if (!data || data.error) {
+                console.error('Error fetching system info:', data?.error || 'Unknown error');
                 return;
             }
             
@@ -174,6 +184,7 @@ function getSystemInfo() {
                     <td>${proc.pid}</td>
                     <td>${proc.name}</td>
                     <td>${proc.cpu_percent !== null ? proc.cpu_percent.toFixed(1) : 'N/A'}</td>
+                    <td><button class="btn btn-stop" onclick="killProcess(${proc.pid})">杀掉</button></td>
                 `;
                 cpuProcessesBody.appendChild(row);
             });
@@ -187,6 +198,7 @@ function getSystemInfo() {
                     <td>${proc.pid}</td>
                     <td>${proc.name}</td>
                     <td>${proc.memory_percent !== null ? proc.memory_percent.toFixed(1) : 'N/A'}</td>
+                    <td><button class="btn btn-stop" onclick="killProcess(${proc.pid})">杀掉</button></td>
                 `;
                 memoryProcessesBody.appendChild(row);
             });
@@ -248,7 +260,13 @@ function toggleSystemInfo() {
 // 获取运行中的进程
 function getRunningProcesses() {
     fetch('/api/processes')
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            return response.json();
+        })
         .then(processes => {
             const tableBody = document.querySelector('#runningTable tbody');
             tableBody.innerHTML = '';
@@ -284,7 +302,13 @@ function getRunningProcesses() {
 // 获取所有脚本
 function getAllScripts() {
     fetch('/api/scripts')
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            return response.json();
+        })
         .then(scripts => {
             allScripts = scripts;
             displayScriptsPage(1);
@@ -435,7 +459,13 @@ function stopScript(pid) {
 function viewLogs(pid) {
     currentLogPid = pid;
     fetch(`/api/logs/${pid}`)
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            return response.json();
+        })
         .then(data => {
             const logContainer = document.getElementById('logContent');
             if (data.error) {
@@ -517,63 +547,166 @@ function streamLogs(pid) {
     };
 }
 
-// 保存SSH连接
-function saveConnection() {
-    const connData = {
-        name: document.getElementById('connName').value,
-        host: document.getElementById('sshHost').value,
-        port: parseInt(document.getElementById('sshPort').value),
-        username: document.getElementById('sshUsername').value,
-        auth_method: document.getElementById('authMethod').value,
-        password: document.getElementById('sshPassword').value,
-        key_file: document.getElementById('sshKeyFile').value
+// 打开SSH配置弹窗
+function openSSHConfig() {
+    // 清空表单
+    document.getElementById('sshConfigForm').reset();
+    document.getElementById('connId').value = '';
+    document.getElementById('sshConfigTitle').textContent = 'SSH连接配置';
+    
+    // 显示弹窗
+    document.getElementById('sshConfigModal').style.display = 'block';
+    
+    // 设置认证方式显示
+    const authMethod = document.getElementById('authMethod').value;
+    if (authMethod === 'password') {
+        document.getElementById('passwordField').style.display = 'block';
+        document.getElementById('keyFileField').style.display = 'none';
+    } else {
+        document.getElementById('passwordField').style.display = 'none';
+        document.getElementById('keyFileField').style.display = 'block';
+    }
+}
+
+// 关闭SSH配置弹窗
+function closeSSHConfig() {
+    document.getElementById('sshConfigModal').style.display = 'none';
+}
+
+// 测试SSH连接
+function testConnection() {
+    const connName = document.getElementById('connName').value;
+    const sshHost = document.getElementById('sshHost').value;
+    const sshPort = document.getElementById('sshPort').value;
+    const sshUsername = document.getElementById('sshUsername').value;
+    const authMethod = document.getElementById('authMethod').value;
+    const sshPassword = document.getElementById('sshPassword').value;
+    const sshKeyFile = document.getElementById('sshKeyFile').value;
+    
+    if (!connName || !sshHost || !sshUsername) {
+        showNotification('连接名称、主机地址和用户名为必填项', 'error');
+        return;
+    }
+    
+    const connectionData = {
+        name: connName,
+        host: sshHost,
+        port: parseInt(sshPort),
+        username: sshUsername,
+        auth_method: authMethod
     };
     
-    // 获取当前配置
-    fetch('/api/ssh/config')
-        .then(response => response.json())
-        .then(config => {
-            // 添加新连接或更新现有连接
-            const existingIndex = config.connections.findIndex(c => c.name === connData.name);
-            if (existingIndex >= 0) {
-                config.connections[existingIndex] = connData;
-            } else {
-                config.connections.push(connData);
-            }
-            
-            // 保存配置
-            return fetch('/api/ssh/config', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(config)
-            });
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification(data.message, 'success');
-                loadSavedConnections();
-                // 清空表单
-                document.getElementById('sshConfigForm').reset();
-                // 重置认证方式显示
-                document.getElementById('passwordField').style.display = 'block';
-                document.getElementById('keyFileField').style.display = 'none';
-            } else {
-                showNotification('错误: ' + data.error, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving connection:', error);
-            showNotification('保存连接时出错', 'error');
-        });
+    if (authMethod === 'password') {
+        if (!sshPassword) {
+            showNotification('密码不能为空', 'error');
+            return;
+        }
+        connectionData.password = sshPassword;
+    } else {
+        if (!sshKeyFile) {
+            showNotification('密钥文件路径不能为空', 'error');
+            return;
+        }
+        connectionData.key_file = sshKeyFile;
+    }
+    
+    fetch('/api/ssh/test_connection', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+            // 注意：这里不添加认证检查，因为测试连接应该在保存前进行
+        },
+        body: JSON.stringify(connectionData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(`连接测试失败: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification(`连接测试时出错: ${error}`, 'error');
+    });
+}
+
+// 保存SSH连接
+function saveConnection() {
+    const connName = document.getElementById('connName').value;
+    const sshHost = document.getElementById('sshHost').value;
+    const sshPort = document.getElementById('sshPort').value;
+    const sshUsername = document.getElementById('sshUsername').value;
+    const authMethod = document.getElementById('authMethod').value;
+    const sshPassword = document.getElementById('sshPassword').value;
+    const sshKeyFile = document.getElementById('sshKeyFile').value;
+    
+    if (!connName || !sshHost || !sshUsername) {
+        showNotification('连接名称、主机地址和用户名为必填项', 'error');
+        return;
+    }
+    
+    const connectionData = {
+        name: connName,
+        host: sshHost,
+        port: parseInt(sshPort),
+        username: sshUsername,
+        auth_method: authMethod
+    };
+    
+    if (authMethod === 'password') {
+        if (!sshPassword) {
+            showNotification('密码不能为空', 'error');
+            return;
+        }
+        connectionData.password = sshPassword;
+    } else {
+        if (!sshKeyFile) {
+            showNotification('密钥文件路径不能为空', 'error');
+            return;
+        }
+        connectionData.key_file = sshKeyFile;
+    }
+    
+    fetch('/api/ssh/save_connection', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(connectionData)
+    })
+    .then(response => {
+        // 检查是否未认证
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showNotification('连接配置已保存', 'success');
+            closeSSHConfig(); // 关闭弹窗
+            loadSavedConnections(); // 刷新连接列表
+        } else {
+            showNotification(`保存连接失败: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification(`保存连接时出错: ${error}`, 'error');
+    });
 }
 
 // 加载已保存的SSH连接
 function loadSavedConnections() {
     fetch('/api/ssh/config')
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            return response.json();
+        })
         .then(config => {
             const connectionsDiv = document.getElementById('savedConnections');
             connectionsDiv.innerHTML = '';
@@ -891,42 +1024,95 @@ function sendCommand() {
     const commandInput = document.getElementById('consoleCommand');
     const command = commandInput.value;
     
-    if (!command) {
-        return;
-    }
-    
-    if (consoleWebSocket && consoleWebSocket.readyState === WebSocket.OPEN) {
-        consoleWebSocket.send(JSON.stringify({command: command}));
-        commandInput.value = '';
-    } else {
-        document.getElementById('consoleOutput').textContent += '[错误]: WebSocket未连接\n';
-    }
+    // 检查是否已认证
+    fetch('/api/auth/check', {
+        method: 'GET'
+    })
+    .then(response => {
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+        // 如果已认证，继续发送命令
+        return response.json().then(() => {
+            if (consoleWebSocket && consoleWebSocket.readyState === WebSocket.OPEN) {
+                consoleWebSocket.send(JSON.stringify({command: command}));
+                commandInput.value = '';
+            } else {
+                document.getElementById('consoleOutput').textContent += '[错误]: WebSocket未连接\n';
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Error checking authentication:', error);
+        window.location.href = '/login';
+    });
 }
 
 // 切换调试模式
 function toggleDebugMode() {
-    debugMode = !debugMode;
-    const debugSection = document.getElementById('debugSection');
-    if (debugMode) {
-        debugSection.style.display = 'block';
-    } else {
-        debugSection.style.display = 'none';
-    }
+    // 检查是否已认证
+    fetch('/api/auth/check', {
+        method: 'GET'
+    })
+    .then(response => {
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+        // 如果已认证，继续执行调试模式切换
+        return response.json().then(() => {
+            debugMode = !debugMode;
+            const debugSection = document.getElementById('debugSection');
+            if (debugMode) {
+                debugSection.style.display = 'block';
+            } else {
+                debugSection.style.display = 'none';
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Error checking authentication:', error);
+        window.location.href = '/login';
+    });
 }
 
 // 发送调试命令
 function sendDebugCommand(command) {
-    if (consoleWebSocket && consoleWebSocket.readyState === WebSocket.OPEN) {
-        consoleWebSocket.send(command);
-    } else {
-        document.getElementById('consoleOutput').textContent += '[错误]: WebSocket未连接\n';
-    }
+    // 检查是否已认证
+    fetch('/api/auth/check', {
+        method: 'GET'
+    })
+    .then(response => {
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+        // 如果已认证，继续发送调试命令
+        return response.json().then(() => {
+            if (consoleWebSocket && consoleWebSocket.readyState === WebSocket.OPEN) {
+                consoleWebSocket.send(command);
+            } else {
+                document.getElementById('consoleOutput').textContent += '[错误]: WebSocket未连接\n';
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Error checking authentication:', error);
+        window.location.href = '/login';
+    });
 }
 
 // 加载监控配置
 function loadMonitorConfig() {
     fetch('/api/config/monitor')
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            return response.json();
+        })
         .then(config => {
             document.getElementById('monitorPaths').value = config.monitor_paths.join('\n');
             document.getElementById('excludePatterns').value = config.exclude_patterns.join('\n');
@@ -971,7 +1157,13 @@ function saveMonitorConfig() {
         },
         body: JSON.stringify(config)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             showNotification(data.message, 'success');
@@ -983,5 +1175,33 @@ function saveMonitorConfig() {
     .catch(error => {
         console.error('Error saving monitor config:', error);
         showNotification('保存监控配置时出错', 'error');
+    });
+}
+
+// 杀掉进程功能
+function killProcess(pid) {
+    if (!confirm(`确定要杀掉进程 ${pid} 吗?`)) {
+        return;
+    }
+    
+    fetch('/api/kill', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({pid: pid})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`进程 ${pid} 已成功杀掉`, 'success');
+            // 刷新系统信息
+            getSystemInfo();
+        } else {
+            showNotification(`杀掉进程失败: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification(`杀掉进程时出错: ${error}`, 'error');
     });
 }

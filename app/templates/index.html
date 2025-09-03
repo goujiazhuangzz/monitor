@@ -4,269 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Python脚本监控工具</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 模块化CSS文件 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/system-info.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/ssh.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modules/config.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Python脚本监控工具</h1>
-        
-        <div class="section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>系统信息</h2>
-                <button id="toggleSystemInfo" class="btn btn-config" style="margin: 0;">折叠</button>
-            </div>
-            <button id="refreshSystemInfo" class="btn btn-refresh">刷新</button>
-            <button id="autoRefreshSystemInfo" class="btn btn-auto-refresh">自动刷新</button>
-            <div class="clear"></div>
-            
-            <div id="systemInfoContent">
-                <div class="info-grid">
-                    <div class="info-card">
-                        <h3>CPU信息</h3>
-                        <div class="info-item">
-                            <span class="info-label">使用率:</span>
-                            <span id="cpuPercent">--</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">核心数:</span>
-                            <span id="cpuCount">--</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div id="cpuProgress" class="progress-fill" style="width: 0%"></div>
-                        </div>
-                        <h4>Top 5 进程</h4>
-                        <table class="process-table">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>进程名</th>
-                                    <th>CPU%</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cpuProcesses">
-                                <tr><td colspan="3">加载中...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="info-card">
-                        <h3>内存信息</h3>
-                        <div class="info-item">
-                            <span class="info-label">使用率:</span>
-                            <span id="memoryPercent">--</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">已用:</span>
-                            <span id="memoryUsed">--</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">总计:</span>
-                            <span id="memoryTotal">--</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div id="memoryProgress" class="progress-fill" style="width: 0%"></div>
-                        </div>
-                        <h4>Top 5 进程</h4>
-                        <table class="process-table">
-                            <thead>
-                                <tr>
-                                    <th>PID</th>
-                                    <th>进程名</th>
-                                    <th>内存%</th>
-                                </tr>
-                            </thead>
-                            <tbody id="memoryProcesses">
-                                <tr><td colspan="3">加载中...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="info-card">
-                        <h3>磁盘信息</h3>
-                        <div id="diskInfo">
-                            加载中...
-                        </div>
-                    </div>
-                </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>Python脚本监控工具</h1>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span>欢迎, {{ session.username }}!</span>
+                <button id="changePasswordBtn" class="btn btn-config">修改密码</button>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-config" style="text-decoration: none;">注销</a>
             </div>
         </div>
         
         <div class="tabs">
-            <div class="tab active" data-tab="local">本地脚本管理</div>
+            <div class="tab active" data-tab="system">系统信息</div>
+            <div class="tab" data-tab="local">本地脚本管理</div>
             <div class="tab" data-tab="ssh">SSH远程连接</div>
             <div class="tab" data-tab="config">配置管理</div>
         </div>
         
-        <div id="local-tab" class="tab-content active">
-            <div class="section">
-                <h2>运行中的脚本</h2>
-                <button id="refreshRunning" class="btn refresh-btn">刷新</button>
-                <div class="clear"></div>
-                <table id="runningTable">
-                    <thead>
-                        <tr>
-                            <th>PID</th>
-                            <th>脚本名称</th>
-                            <th>完整路径</th>
-                            <th>启动时间</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- 动态填充数据 -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="section">
-                <h2>所有脚本</h2>
-                <button id="refreshScripts" class="btn refresh-btn">刷新</button>
-                <div class="clear"></div>
-                <div class="pagination-info" id="scriptsPaginationInfo"></div>
-                <table id="scriptsTable">
-                    <thead>
-                        <tr>
-                            <th>脚本名称</th>
-                            <th>相对路径</th>
-                            <th>完整路径</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- 动态填充数据 -->
-                    </tbody>
-                </table>
-                <div class="pagination" id="scriptsPagination"></div>
-            </div>
-            
-            <div class="section">
-                <div class="log-header">
-                    <div class="log-title">脚本日志</div>
-                    <button id="autoScrollBtn" class="auto-scroll-btn active">自动滚动</button>
-                </div>
-                <div id="logContent" class="log-container">
-                    选择一个脚本以查看日志
-                </div>
-                <div style="margin-top: 10px;">
-                    <button id="refreshLogsBtn" class="btn btn-view">刷新日志</button>
-                    <button id="streamLogsBtn" class="btn btn-stream">实时日志</button>
-                </div>
-            </div>
-        </div>
-        
-        <div id="ssh-tab" class="tab-content">
-            <div class="section">
-                <h2>SSH连接配置</h2>
-                <form id="sshConfigForm">
-                    <div class="ssh-form">
-                        <div>
-                            <label>连接名称:</label>
-                            <input type="text" id="connName" placeholder="例如: server1">
-                        </div>
-                        <div>
-                            <label>主机地址:</label>
-                            <input type="text" id="sshHost" placeholder="例如: 192.168.1.100">
-                        </div>
-                        <div>
-                            <label>端口:</label>
-                            <input type="number" id="sshPort" value="22">
-                        </div>
-                        <div>
-                            <label>用户名:</label>
-                            <input type="text" id="sshUsername" placeholder="例如: ubuntu">
-                        </div>
-                        <div>
-                            <label>认证方式:</label>
-                            <select id="authMethod">
-                                <option value="password">密码</option>
-                                <option value="key">密钥文件</option>
-                            </select>
-                        </div>
-                        <div id="passwordField">
-                            <label>密码:</label>
-                            <input type="password" id="sshPassword" placeholder="输入密码">
-                        </div>
-                        <div id="keyFileField" style="display:none;">
-                            <label>密钥文件路径:</label>
-                            <input type="text" id="sshKeyFile" placeholder="例如: ~/.ssh/id_rsa">
-                        </div>
-                        <div class="ssh-form-full">
-                            <button type="button" id="saveConnection" class="btn btn-connect">保存连接</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            
-            <div class="section">
-                <h2>已保存的连接</h2>
-                <button id="refreshConnections" class="btn refresh-btn">刷新</button>
-                <div class="clear"></div>
-                <div id="savedConnections">
-                    <!-- 动态填充连接 -->
-                </div>
-            </div>
-        </div>
-        
-        <div id="config-tab" class="tab-content">
-            <div class="section">
-                <h2>监控配置</h2>
-                <form id="monitorConfigForm">
-                    <div class="config-form">
-                        <div class="config-item">
-                            <label>监控路径 (每行一个路径):</label>
-                            <textarea id="monitorPaths" placeholder="例如:
-.
-/home/user/scripts
-C:\Users\user\Documents\projects"></textarea>
-                            <div class="path-list" id="resolvedPaths">
-                                解析后的路径将显示在这里
-                            </div>
-                        </div>
-                        <div class="config-item">
-                            <label>排除模式 (每行一个模式):</label>
-                            <textarea id="excludePatterns" placeholder="例如:
-monitor.py
-test_*.py
-*_test.py"></textarea>
-                        </div>
-                        <button type="button" id="saveMonitorConfig" class="btn btn-config">保存配置</button>
-                        <button type="button" id="loadMonitorConfig" class="btn btn-config">加载配置</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <!-- 模块化HTML内容 -->
+        {% include 'modules/system-info.html' %}
+        {% include 'modules/local-scripts.html' %}
+        {% include 'modules/ssh-connections.html' %}
+        {% include 'modules/config.html' %}
+        {% include 'modules/modals.html' %}
     </div>
     
-    <!-- SSH控制台弹窗 -->
-    <div id="consoleModal" class="console-container">
-        <div class="console-window">
-            <div class="console-header">
-                <div id="consoleTitle">SSH控制台</div>
-                <button class="close-btn" onclick="closeConsole()">关闭</button>
-            </div>
-            <div class="console-body">
-                <div id="consoleOutput" class="console-output"></div>
-                <div class="console-input-area">
-                    <div class="console-input">
-                        <input type="text" id="consoleCommand" placeholder="输入命令..." onkeypress="if(event.keyCode==13) sendCommand()">
-                        <button class="btn btn-execute" onclick="sendCommand()">执行</button>
-                        <button class="btn btn-debug" onclick="toggleDebugMode()">调试模式</button>
-                    </div>
-                    <div id="debugSection" class="debug-section" style="display: none;">
-                        <h4>调试工具</h4>
-                        <div class="debug-buttons">
-                            <button class="btn btn-debug" onclick="sendDebugCommand('ps aux | grep python')">查看Python进程</button>
-                            <button class="btn btn-debug" onclick="sendDebugCommand('ls -la')">列出文件</button>
-                            <button class="btn btn-debug" onclick="sendDebugCommand('pwd')">当前目录</button>
-                            <button class="btn btn-debug" onclick="sendDebugCommand('df -h')">磁盘使用情况</button>
-                            <button class="btn btn-debug" onclick="sendDebugCommand('top -bn1 | head -20')">系统状态</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- 模块化JavaScript文件 -->
+    <script src="{{ url_for('static', filename='js/modules/system-info.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/process-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/script-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/ssh-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/config-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/core.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,243 @@
+/* 按钮和表单组件样式 */
+.btn {
+    padding: 6px 12px;
+    margin: 2px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-block;
+    text-decoration: none;
+    color: white;
+    text-align: center;
+}
+
+.btn-start {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-stop {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-view {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-stream {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.btn-connect {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-disconnect {
+    background-color: #ffc107;
+    color: black;
+}
+
+.btn-execute {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.btn-console {
+    background-color: #20c997;
+    color: white;
+}
+
+.btn-debug {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.btn-config {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-refresh {
+    background-color: #6c757d;
+    color: white;
+    float: right;
+}
+
+.btn-auto-refresh {
+    background-color: #17a2b8;
+    color: white;
+    float: right;
+    margin-right: 10px;
+}
+
+.btn-auto-refresh.active {
+    background-color: #007bff;
+}
+
+.btn-pagination {
+    background-color: #6c757d;
+    color: white;
+    padding: 5px 10px;
+    margin: 0 2px;
+}
+
+.btn-pagination.active {
+    background-color: #007bff;
+}
+
+.btn-login {
+    background-color: #007bff;
+    color: white;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-login:hover {
+    background-color: #0056b3;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+/* 表单样式 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+/* 表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* 登录页面样式 */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5;
+}
+
+.login-form {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.error-message {
+    color: #dc3545;
+    text-align: center;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+/* 分页样式 */
+.pagination {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.pagination-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* 日志容器样式 */
+.log-container {
+    background-color: #000;
+    color: #00ff00;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 5px;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: monospace;
+    white-space: pre-wrap;
+    margin-bottom: 10px;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.log-title {
+    font-weight: bold;
+}
+
+.auto-scroll-btn {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.auto-scroll-btn.active {
+    background-color: #007bff;
+}
+
+.refresh-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 8px 16px;
+    float: right;
+}
