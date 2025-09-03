@@ -14,6 +14,7 @@ A powerful and easy-to-use monitoring tool for managing Python scripts. This too
 - Web-based user interface for easy access
 - Configurable monitoring paths and exclusion patterns
 - System resource monitoring (CPU, memory, disk usage)
+- Interactive SSH console for remote server management
 
 ## Prerequisites
 
@@ -45,13 +46,14 @@ After starting the application, open your browser and navigate to `http://localh
 ## Usage
 
 1. After starting the monitor, access the web interface at `http://localhost:5000`
-2. The "Running Scripts" section shows all currently running Python processes
-3. The "All Scripts" section lists all Python scripts in configured monitor paths
-4. Use the "Start" button to launch a script
-5. Use the "Stop" button to terminate a running script
-6. Click "View Logs" to see script logs and process information
-7. Use the "Stream Logs" feature for real-time log monitoring
-8. Configure SSH connections in the "SSH Management" section to manage remote scripts
+2. The "Local Script Management" tab shows running scripts and all Python scripts in configured monitor paths
+3. Use the "Start" button to launch a script
+4. Use the "Stop" button to terminate a running script
+5. Click "View Logs" to see script logs and process information
+6. Use the "Stream Logs" feature for real-time log monitoring
+7. Configure SSH connections in the "SSH Management" tab to manage remote scripts
+8. Use the interactive SSH console for remote server management
+9. Configure monitoring paths and exclusion patterns in the "Configuration Management" tab
 
 ## Configuration
 
@@ -145,8 +147,31 @@ Example configuration:
 - `/api/ssh/config` - Get or update SSH configuration
 - `/api/ssh/connect` - Establish SSH connection
 - `/api/ssh/disconnect` - Disconnect SSH session
-- `/api/system/info` - Get system resource information
+- `/api/ssh/system_info` - Get remote system information via SSH
+- `/api/system/info` - Get local system resource information
 - `/api/config/monitor` - Get or update monitor configuration
+- `/ws/ssh_shell/<conn_id>` - WebSocket endpoint for SSH shell
+
+## User Interface
+
+The web interface is organized into three main tabs:
+
+1. **Local Script Management**
+   - System information panel (collapsible)
+   - Running scripts table with controls
+   - All scripts table with pagination
+   - Log viewer with real-time streaming capability
+
+2. **SSH Remote Connection**
+   - SSH connection configuration form
+   - Saved connections list with connect/disconnect buttons
+   - Connection status indicators
+   - Remote system information display
+   - Interactive SSH console
+
+3. **Configuration Management**
+   - Monitor paths configuration
+   - Exclusion patterns configuration
 
 ## Important Notes
 
@@ -154,6 +179,7 @@ Example configuration:
 - For security reasons, run this tool with regular user privileges
 - Log viewing shows process information and resource usage, not standard output logs for manually started processes
 - SSH functionality requires proper network connectivity and authentication
+- SSH console filters out ANSI escape sequences for better readability
 
 ## Dependencies
 
