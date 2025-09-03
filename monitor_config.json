@@ -1,0 +1,13 @@
+{
+  "monitor_paths": [
+    ".",
+    "../scripts",
+    "../../projects",
+    "/mnt/d/shell/dns/207/main/"
+  ],
+  "exclude_patterns": [
+    "monitor.py",
+    "test_*.py",
+    "*_test.py"
+  ]
+}

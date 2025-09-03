@@ -1,0 +1,13 @@
+{
+  "connections": [
+    {
+      "name": "107",
+      "host": "192.168.3.107",
+      "port": 22,
+      "username": "root",
+      "auth_method": "password",
+      "password": "123456",
+      "key_file": ""
+    }
+  ]
+}
