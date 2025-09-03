@@ -1,63 +1,151 @@
-# Python脚本监控工具
+# Python Script Monitor
 
-这是一个开箱即用的监控工具，可以用于管理运行中的Python脚本，包括启动、停止和查看日志功能。
+A powerful and easy-to-use monitoring tool for managing Python scripts. This tool provides a web interface to start, stop, monitor, and view logs of Python scripts running on your local machine or remote servers via SSH.
 
-## 功能特点
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-- 查看当前运行的所有Python脚本
-- 启动和停止Python脚本
-- 查看脚本的基本信息和资源使用情况
-- 简单易用的Web界面
+## Features
 
-## 安装和运行
+- Monitor all running Python processes in real-time
+- Start and stop Python scripts with one click
+- View detailed process information and resource usage
+- Real-time log streaming for running scripts
+- SSH connection to remote machines for script management
+- Web-based user interface for easy access
+- Configurable monitoring paths and exclusion patterns
+- System resource monitoring (CPU, memory, disk usage)
 
-### 方法一：使用启动脚本（推荐）
+## Prerequisites
+
+- Python 3.6+
+- pip (Python package installer)
+
+## Installation & Quick Start
+
+### Method 1: Using the startup script (Recommended)
 
 ```bash
 ./run_monitor.sh
 ```
 
-### 方法二：手动安装和运行
+### Method 2: Manual installation
 
-1. 安装依赖：
+1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. 运行监控工具：
+2. Run the monitor:
 ```bash
 python monitor.py
 ```
 
-## 使用说明
+After starting the application, open your browser and navigate to `http://localhost:5000`
 
-1. 运行监控工具后，在浏览器中访问 `http://localhost:5000`
-2. 在"运行中的脚本"部分，可以看到当前正在运行的Python脚本
-3. 在"所有脚本"部分，可以看到当前目录下的所有Python脚本
-4. 点击"启动"按钮可以启动一个脚本
-5. 点击"停止"按钮可以停止一个正在运行的脚本
-6. 点击"查看日志"可以查看脚本的基本信息和资源使用情况
+## Usage
 
-## 注意事项
+1. After starting the monitor, access the web interface at `http://localhost:5000`
+2. The "Running Scripts" section shows all currently running Python processes
+3. The "All Scripts" section lists all Python scripts in configured monitor paths
+4. Use the "Start" button to launch a script
+5. Use the "Stop" button to terminate a running script
+6. Click "View Logs" to see script logs and process information
+7. Use the "Stream Logs" feature for real-time log monitoring
+8. Configure SSH connections in the "SSH Management" section to manage remote scripts
 
-- 该工具只能管理当前目录下的Python脚本
-- 日志查看功能目前显示的是进程的基本信息和资源使用情况，而非标准输出日志
-- 建议以普通用户权限运行此工具，避免权限过高造成安全问题
+## Configuration
 
-## 依赖项
+### Monitor Configuration
 
-- Python 3.6+
-- Flask
-- psutil
+The monitor can be configured via [monitor_config.json](monitor_config.json):
 
-## 项目结构
+- `monitor_paths`: List of paths to scan for Python scripts
+- `exclude_patterns`: Patterns for excluding files from monitoring
+
+Example configuration:
+```json
+{
+  "monitor_paths": [
+    ".",
+    "../scripts",
+    "../../projects"
+  ],
+  "exclude_patterns": [
+    "monitor.py",
+    "test_*.py",
+    "*_test.py"
+  ]
+}
+```
+
+### SSH Configuration
+
+SSH connections are configured in [ssh_config.json](ssh_config.json):
+
+Example configuration:
+```json
+{
+  "connections": [
+    {
+      "name": "Production Server",
+      "host": "192.168.1.100",
+      "port": 22,
+      "username": "user",
+      "auth_method": "password",
+      "password": "password",
+      "key_file": ""
+    }
+  ]
+}
+```
+
+## Project Structure
 
 ```
 .
-├── monitor.py          # 监控工具主程序
-├── run_monitor.sh      # 启动脚本
-├── requirements.txt    # 依赖列表
-├── templates/          # Web界面模板
-│   └── index.html      # 主界面
-└── README.md           # 说明文档
+├── monitor.py              # Main application
+├── run_monitor.sh          # Startup script
+├── requirements.txt        # Python dependencies
+├── monitor_config.json     # Monitor configuration
+├── ssh_config.json         # SSH configuration
+├── templates/              # Web interface templates
+│   └── index.html          # Main interface
+├── script_logs/            # Script log files (auto-created)
+└── README.md               # This file
 ```
+
+## API Endpoints
+
+- `/api/processes` - Get all running Python processes
+- `/api/scripts` - Get all Python scripts in monitored paths
+- `/api/start` - Start a Python script
+- `/api/stop` - Stop a running script by PID
+- `/api/logs/<pid>` - Get logs for a specific process
+- `/api/logs/stream/<pid>` - Stream logs in real-time using Server-Sent Events
+- `/api/ssh/config` - Get or update SSH configuration
+- `/api/ssh/connect` - Establish SSH connection
+- `/api/ssh/disconnect` - Disconnect SSH session
+- `/api/system/info` - Get system resource information
+- `/api/config/monitor` - Get or update monitor configuration
+
+## Important Notes
+
+- The tool can only manage Python scripts in configured paths
+- For security reasons, run this tool with regular user privileges
+- Log viewing shows process information and resource usage, not standard output logs for manually started processes
+- SSH functionality requires proper network connectivity and authentication
+
+## Dependencies
+
+- [Flask 2.3.2](https://pypi.org/project/Flask/2.3.2/) - Web framework
+- [psutil 5.9.5](https://pypi.org/project/psutil/5.9.5/) - Process and system utilities
+- [paramiko 3.3.1](https://pypi.org/project/paramiko/3.3.1/) - SSH protocol library
+- [flask-sock 0.5.2](https://pypi.org/project/flask-sock/0.5.2/) - WebSocket support for Flask
+
+## Screenshots
+
+![Main Interface](screenshots/main_interface.png)
+![SSH Management](screenshots/ssh_management.png)
+![Log Streaming](screenshots/log_streaming.png)
+
+*Note: Screenshots are for demonstration purposes. Actual interface may vary.*
