@@ -1,8 +1,17 @@
 {
   "connections": [
     {
-      "name": "107",
+      "auth_method": "password",
       "host": "192.168.3.107",
+      "key_file": "",
+      "name": "107",
+      "password": "123456",
+      "port": 22,
+      "username": "root"
+    },
+    {
+      "name": "188",
+      "host": "192.168.3.188",
       "port": 22,
       "username": "root",
       "auth_method": "password",

@@ -37,7 +37,7 @@ pip install -r requirements.txt
 
 2. 运行监控工具：
 ```bash
-python monitor.py
+python run.py
 ```
 
 启动应用程序后，打开浏览器并访问 `http://localhost:5000`
@@ -103,13 +103,33 @@ SSH连接在 [ssh_config.json](ssh_config.json) 文件中配置：
 
 ```
 .
-├── monitor.py              # 主应用程序
+├── run.py                  # 应用主入口点
 ├── run_monitor.sh          # 启动脚本
 ├── requirements.txt        # Python依赖项
 ├── monitor_config.json     # 监控配置
 ├── ssh_config.json         # SSH配置
-├── templates/              # Web界面模板
-│   └── index.html          # 主界面
+├── app/                    # 应用源代码
+│   ├── __init__.py         # 应用初始化
+│   ├── api/                # API接口
+│   │   ├── process_api.py  # 进程管理API
+│   │   ├── script_api.py   # 脚本管理API
+│   │   ├── ssh_api.py      # SSH连接API
+│   │   ├── system_api.py   # 系统信息API
+│   │   ├── config_api.py   # 配置API
+│   │   └── ssh_websocket.py# SSH WebSocket处理器
+│   ├── models/             # 数据模型
+│   │   ├── process_logger.py # 进程日志模型
+│   │   └── ssh_connection.py # SSH连接模型
+│   ├── utils/              # 工具函数
+│   │   ├── config_loader.py  # 配置加载工具
+│   │   └── process_manager.py# 进程管理工具
+│   ├── static/             # 静态文件
+│   │   ├── css/            # 样式表
+│   │   │   └── style.css   # 主样式表
+│   │   └── js/             # JavaScript文件
+│   │       └── main.js     # 主JavaScript逻辑
+│   └── templates/          # HTML模板
+│       └── index.html      # 主界面
 ├── script_logs/            # 脚本日志文件（自动创建）
 └── README.md               # 英文说明文件
 └── README_zh.md            # 本文件（中文说明文件）

@@ -42,12 +42,18 @@ if [ -f "requirements.txt" ]; then
 fi
 
 # 创建templates目录（如果不存在）
-if [ ! -d "templates" ]; then
+if [ ! -d "app/templates" ]; then
     echo "创建templates目录..."
-    mkdir templates
+    mkdir -p app/templates
+fi
+
+# 创建static目录（如果不存在）
+if [ ! -d "app/static" ]; then
+    echo "创建static目录..."
+    mkdir -p app/static
 fi
 
 # 启动监控工具
 echo "启动监控工具..."
 echo "请在浏览器中访问: http://localhost:5000"
-python3 monitor.py
+python3 run.py

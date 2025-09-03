@@ -37,7 +37,7 @@ pip install -r requirements.txt
 
 2. Run the monitor:
 ```bash
-python monitor.py
+python run.py
 ```
 
 After starting the application, open your browser and navigate to `http://localhost:5000`
@@ -103,13 +103,33 @@ Example configuration:
 
 ```
 .
-├── monitor.py              # Main application
+├── run.py                  # Main application entry point
 ├── run_monitor.sh          # Startup script
 ├── requirements.txt        # Python dependencies
 ├── monitor_config.json     # Monitor configuration
 ├── ssh_config.json         # SSH configuration
-├── templates/              # Web interface templates
-│   └── index.html          # Main interface
+├── app/                    # Application source code
+│   ├── __init__.py         # Application initialization
+│   ├── api/                # API endpoints
+│   │   ├── process_api.py  # Process management APIs
+│   │   ├── script_api.py   # Script management APIs
+│   │   ├── ssh_api.py      # SSH connection APIs
+│   │   ├── system_api.py   # System information APIs
+│   │   ├── config_api.py   # Configuration APIs
+│   │   └── ssh_websocket.py# SSH WebSocket handlers
+│   ├── models/             # Data models
+│   │   ├── process_logger.py # Process logging model
+│   │   └── ssh_connection.py # SSH connection model
+│   ├── utils/              # Utility functions
+│   │   ├── config_loader.py  # Configuration loading utilities
+│   │   └── process_manager.py# Process management utilities
+│   ├── static/             # Static files
+│   │   ├── css/            # Stylesheets
+│   │   │   └── style.css   # Main stylesheet
+│   │   └── js/             # JavaScript files
+│   │       └── main.js     # Main JavaScript logic
+│   └── templates/          # HTML templates
+│       └── index.html      # Main interface
 ├── script_logs/            # Script log files (auto-created)
 └── README.md               # This file
 ```
