@@ -1,9 +1,0 @@
-/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/paramiko/pkey.py:100: CryptographyDeprecationWarning: TripleDES has been moved to cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and will be removed from cryptography.hazmat.primitives.ciphers.algorithms in 48.0.0.
-  "cipher": algorithms.TripleDES,
-/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/paramiko/transport.py:258: CryptographyDeprecationWarning: TripleDES has been moved to cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and will be removed from cryptography.hazmat.primitives.ciphers.algorithms in 48.0.0.
-  "class": algorithms.TripleDES,
-Address already in use
-Port 5000 is in use by another program. Either identify and stop that program, or start the server with a different port.
-On macOS, try disabling the 'AirPlay Receiver' service from System Preferences -> General -> AirDrop & Handoff.
-Starting monitor tool on http://localhost:5000
-Press Ctrl+C to stop
