@@ -98,16 +98,30 @@ class SSHConnection:
     def send_command(self, command):
         """Send command to the shell"""
         if not self.shell:
-            return False, "Shell not opened"
+            # If shell is not opened, use exec_command instead
+            if not self.client:
+                return False, "", "Not connected"
+            
+            try:
+                # For one-time commands, use exec_command
+                stdin, stdout, stderr = self.client.exec_command(command)
+                output = stdout.read().decode('utf-8')
+                error = stderr.read().decode('utf-8')
+                
+                if error:
+                    return False, "", error
+                return True, output, ""
+            except Exception as e:
+                return False, "", str(e)
         
         try:
             # Add newline if not present
             if not command.endswith('\n'):
                 command += '\n'
             self.shell.send(command)
-            return True, "Command sent"
+            return True, "", "Command sent"
         except Exception as e:
-            return False, str(e)
+            return False, "", str(e)
     
     def disconnect(self):
         if self.shell_thread:

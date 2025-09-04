@@ -4,7 +4,8 @@ Provides endpoints for retrieving system information
 """
 
 import psutil
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request, session
+from app import create_app
 
 system_bp = Blueprint('system', __name__)
 
@@ -12,6 +13,13 @@ system_bp = Blueprint('system', __name__)
 @system_bp.route('/api/system/info')
 def get_system_info():
     """获取系统信息"""
+    # 检查是否需要认证
+    app, _ = create_app()
+    if hasattr(app, 'auth_manager'):
+        from flask import session
+        if 'username' not in session:
+            return jsonify({'error': '未认证'}), 401
+    
     try:
         # CPU信息
         cpu_percent = psutil.cpu_percent(interval=1)

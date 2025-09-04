@@ -1,7 +1,7 @@
 /* 按钮和表单组件样式 */
 .btn {
-    padding: 6px 12px;
-    margin: 2px;
+    padding: 8px 16px;
+    margin: 4px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -10,6 +10,8 @@
     text-decoration: none;
     color: white;
     text-align: center;
+    min-width: 60px;
+    transition: all 0.2s ease;
 }
 
 .btn-start {
@@ -20,6 +22,8 @@
 .btn-stop {
     background-color: #e74c3c;
     color: white;
+    padding: 6px 12px;
+    font-size: 13px;
 }
 
 .btn-view {
@@ -82,122 +86,30 @@
 .btn-pagination {
     background-color: #6c757d;
     color: white;
-    padding: 5px 10px;
-    margin: 0 2px;
+    padding: 6px 12px;
+    margin: 0 3px;
 }
 
 .btn-pagination.active {
     background-color: #007bff;
 }
 
-.btn-login {
-    background-color: #007bff;
-    color: white;
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.btn-login:hover {
-    background-color: #0056b3;
-}
-
 .btn:hover {
     opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-/* 表单样式 */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 14px;
-}
-
-/* 表格样式 */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-th, td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-th {
-    background-color: #f8f9fa;
+.status-running {
+    color: #28a745;
     font-weight: bold;
 }
 
-tr:hover {
-    background-color: #f5f5f5;
-}
-
-/* 登录页面样式 */
-.login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f5f5f5;
-}
-
-.login-form {
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 400px;
-}
-
-.login-form h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.error-message {
+.status-stopped {
     color: #dc3545;
-    text-align: center;
-    margin-top: 15px;
     font-weight: bold;
 }
 
-/* 分页样式 */
-.pagination {
-    margin-top: 15px;
-    text-align: center;
-}
-
-.pagination-info {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #666;
-}
-
-/* 日志容器样式 */
 .log-container {
     background-color: #000;
     color: #00ff00;
@@ -206,9 +118,42 @@ tr:hover {
     border-radius: 5px;
     max-height: 400px;
     overflow-y: auto;
-    font-family: monospace;
+    font-family: 'Courier New', monospace;
     white-space: pre-wrap;
     margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.refresh-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 8px 16px;
+    float: right;
+}
+
+.clear {
+    clear: both;
+}
+
+.notification {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.notification.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.notification.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
 }
 
 .log-header {
@@ -226,7 +171,7 @@ tr:hover {
     background-color: #17a2b8;
     color: white;
     border: none;
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 3px;
     cursor: pointer;
 }
@@ -235,9 +180,210 @@ tr:hover {
     background-color: #007bff;
 }
 
-.refresh-btn {
-    background-color: #6c757d;
+.ssh-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.ssh-form-full {
+    grid-column: span 2;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.ssh-form input, .ssh-form select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.ssh-connection-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #f8f9fa;
+}
+
+.ssh-connection-status {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.ssh-connection-status.connected {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.ssh-connection-status.disconnected {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.ssh-system-info {
+    margin-top: 10px;
+    padding: 12px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.ssh-system-info-item {
+    margin-bottom: 6px;
+}
+
+.ssh-system-info-label {
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+.config-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.config-item {
+    margin-bottom: 15px;
+}
+
+.config-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.config-item input, .config-item textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: monospace;
+}
+
+.path-list {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.console-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: none;
+    z-index: 1000;
+}
+
+.console-window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 80%;
+    background-color: white;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.console-header {
+    padding: 15px;
+    background-color: #343a40;
     color: white;
-    padding: 8px 16px;
-    float: right;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.console-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    overflow: hidden;
+}
+
+.console-output {
+    flex: 1;
+    background-color: #000;
+    color: #00ff00;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-y: auto;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+.console-input-area {
+    margin-top: 15px;
+}
+
+.console-input {
+    display: flex;
+    gap: 10px;
+}
+
+.console-input input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.debug-section {
+    margin-top: 15px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.debug-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #007bff;
+    transition: width 0.3s ease;
 }

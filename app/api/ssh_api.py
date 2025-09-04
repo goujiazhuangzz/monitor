@@ -244,3 +244,102 @@ def delete_connection(conn_name):
         return jsonify({'success': True, 'message': '连接配置已删除'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@ssh_bp.route('/api/ssh/system_info', methods=['POST'])
+def ssh_system_info():
+    """获取SSH连接的远程系统信息"""
+    try:
+        data = request.get_json()
+        conn_id = data.get('conn_id')
+        
+        if not conn_id:
+            return jsonify({'error': '连接ID是必需的'}), 400
+        
+        if conn_id not in ssh_connections:
+            return jsonify({'error': '未找到指定的连接'}), 404
+        
+        ssh_conn = ssh_connections[conn_id]
+        
+        # 检查连接状态
+        if not ssh_conn.connected:
+            return jsonify({'error': 'SSH连接未建立'}), 400
+            
+        # 在远程服务器上执行命令获取系统信息
+        try:
+            # CPU使用率
+            success_cpu, output_cpu, error_cpu = ssh_conn.send_command("top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}'")
+            if not success_cpu and error_cpu:
+                return jsonify({'success': False, 'error': f'获取CPU信息失败: {error_cpu}'}), 200
+                
+            # 内存使用情况
+            success_memory, output_memory, error_memory = ssh_conn.send_command("free -b | grep Mem | awk '{print $2, $3, $4}'")
+            if not success_memory and error_memory:
+                return jsonify({'success': False, 'error': f'获取内存信息失败: {error_memory}'}), 200
+            
+            # 磁盘使用情况
+            success_disk, output_disk, error_disk = ssh_conn.send_command("df -B1 | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{print $1, $2, $3, $4, $6}'")
+            if not success_disk and error_disk:
+                # 尝试另一种格式
+                success_disk, output_disk, error_disk = ssh_conn.send_command("df -k | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{print $1, $2, $3, $4, $6}'")
+                if not success_disk and error_disk:
+                    return jsonify({'success': False, 'error': f'获取磁盘信息失败: {error_disk}'}), 200
+            
+            # 解析CPU信息
+            cpu_percent = float(output_cpu.strip()) if output_cpu.strip() else 0
+            
+            # 解析内存信息
+            mem_parts = output_memory.strip().split()
+            if len(mem_parts) >= 3:
+                mem_total = int(mem_parts[0])
+                mem_used = int(mem_parts[1])
+                mem_free = int(mem_parts[2])
+                mem_percent = (mem_used / mem_total) * 100 if mem_total > 0 else 0
+            else:
+                return jsonify({'success': False, 'error': '无法解析内存信息'}), 200
+            
+            # 解析磁盘信息
+            disks = []
+            for line in output_disk.strip().split('\n'):
+                if line.strip():  # 确保行不为空
+                    parts = line.split()
+                    if len(parts) >= 5:
+                        try:
+                            device = parts[0]
+                            # 尝试解析数字，如果失败则跳过该行
+                            total = int(parts[1])
+                            used = int(parts[2])
+                            free = int(parts[3])
+                            mountpoint = parts[4]
+                            percent = (used / total) * 100 if total > 0 else 0
+                            disks.append({
+                                'device': device,
+                                'mountpoint': mountpoint,
+                                'total': total,
+                                'used': used,
+                                'free': free,
+                                'percent': percent
+                            })
+                        except ValueError:
+                            # 如果解析数字失败，跳过该行
+                            continue
+            
+            return jsonify({
+                'success': True,
+                'system_info': {
+                    'cpu': {
+                        'percent': cpu_percent
+                    },
+                    'memory': {
+                        'total': mem_total,
+                        'used': mem_used,
+                        'free': mem_free,
+                        'percent': mem_percent
+                    },
+                    'disks': disks
+                }
+            })
+        except Exception as cmd_error:
+            return jsonify({'success': False, 'error': f'执行命令时出错: {str(cmd_error)}'}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 200

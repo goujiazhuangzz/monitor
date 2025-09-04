@@ -7,6 +7,18 @@ class SSHManagerModule {
         this.debugMode = false;
     }
 
+    // 初始化SSH管理器
+    init() {
+        // 加载已保存的连接
+        this.loadSavedConnections();
+        
+        // 绑定刷新按钮事件
+        const refreshBtn = document.getElementById('refreshConnections');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.loadSavedConnections());
+        }
+    }
+
     // 加载已保存的SSH连接
     loadSavedConnections() {
         fetch('/api/ssh/config')
@@ -51,8 +63,8 @@ class SSHManagerModule {
                     `;
                     connectionsDiv.appendChild(connDiv);
 
-                    // 检查连接状态
-                    this.checkConnectionStatus(conn.name);
+                    // 不再自动检查连接状态，避免在页面加载时发送不必要的请求
+                    // 连接状态将在用户主动连接时更新
                 });
             })
             .catch(error => {
@@ -63,6 +75,12 @@ class SSHManagerModule {
 
     // 检查SSH连接状态
     checkConnectionStatus(connName) {
+        // 检查元素是否存在，避免在非SSH页面调用
+        const statusElement = document.getElementById(`ssh-status-${connName}`);
+        if (!statusElement) {
+            return;
+        }
+        
         fetch('/api/ssh/system_info', {
             method: 'POST',
             headers: {
@@ -90,22 +108,46 @@ class SSHManagerModule {
 
                 // 显示系统信息
                 const sysInfo = data.system_info;
-                let systemInfoHTML = '<div class="ssh-system-info-item"><span class="ssh-system-info-label">CPU:</span> ' + 
-                                    sysInfo.cpu.cores + ' 核心, 使用率: ' + sysInfo.cpu.usage + '</div>';
-                systemInfoHTML += '<div class="ssh-system-info-item"><span class="ssh-system-info-label">内存:</span> ' + 
-                                 sysInfo.memory.total + ', 已用: ' + sysInfo.memory.used + ' (' + sysInfo.memory.usage_percent + ')</div>';
-
-                if (sysInfo.disk && sysInfo.disk.length > 0) {
-                    systemInfoHTML += '<div class="ssh-system-info-item"><span class="ssh-system-info-label">磁盘:</span></div>';
-                    sysInfo.disk.forEach(disk => {
-                        systemInfoHTML += `<div class="ssh-system-info-item" style="margin-left: 20px;">
-                                            ${disk.device} (${disk.mount_point}): ${disk.used}/${disk.size} (${disk.use_percent})
-                                          </div>`;
-                    });
+                let systemInfoHTML = '<div class="ssh-system-info-item"><span class="ssh-system-info-label">CPU:</span> ';
+                
+                // CPU信息
+                if (sysInfo.cpu && typeof sysInfo.cpu.percent !== 'undefined') {
+                    systemInfoHTML += sysInfo.cpu.percent.toFixed(1) + '%</div>';
+                } else {
+                    systemInfoHTML += 'N/A</div>';
                 }
-
+                
+                // 内存信息
+                systemInfoHTML += '<div class="ssh-system-info-item"><span class="ssh-system-info-label">内存:</span> ';
+                if (sysInfo.memory) {
+                    const usedGB = (sysInfo.memory.used / (1024*1024*1024));
+                    const totalGB = (sysInfo.memory.total / (1024*1024*1024));
+                    systemInfoHTML += `${usedGB.toFixed(2)} GB / ${totalGB.toFixed(2)} GB (${sysInfo.memory.percent.toFixed(1)}%)</div>`;
+                } else {
+                    systemInfoHTML += 'N/A</div>';
+                }
+                
+                // 磁盘信息
+                if (sysInfo.disks && Array.isArray(sysInfo.disks) && sysInfo.disks.length > 0) {
+                    systemInfoHTML += '<div class="ssh-system-info-item"><span class="ssh-system-info-label">磁盘:</span></div>';
+                    sysInfo.disks.forEach(disk => {
+                        systemInfoHTML += `<div class="ssh-system-info-item disk-info">
+                                          <div class="disk-device">${disk.device} (${disk.mountpoint})</div>
+                                          <div class="disk-progress">
+                                            <div class="progress-bar" style="width: ${disk.percent}%"></div>
+                                          </div>
+                                          <div class="disk-space">${(disk.used / (1024*1024*1024)).toFixed(2)} GB / ${(disk.total / (1024*1024*1024)).toFixed(2)} GB (${disk.percent.toFixed(1)}%)</div>
+                                        </div>`;
+                    });
+                } else {
+                    systemInfoHTML += '<div class="ssh-system-info-item">暂无磁盘信息</div>';
+                }
+                
                 systemInfoDiv.innerHTML = systemInfoHTML;
                 systemInfoDiv.style.display = 'block';
+                statusDiv.classList.add('connected');
+                statusDiv.classList.remove('disconnected');
+                statusDiv.innerHTML = '状态: 已连接';
             } else {
                 // 连接失败或未连接
                 statusDiv.className = 'ssh-connection-status disconnected';
@@ -118,6 +160,12 @@ class SSHManagerModule {
                 }
 
                 systemInfoDiv.style.display = 'none';
+                
+                // 显示错误信息（如果有的话）
+                if (data.error) {
+                    systemInfoDiv.innerHTML = `<div class="ssh-system-info-item error">错误: ${data.error}</div>`;
+                    systemInfoDiv.style.display = 'block';
+                }
             }
         })
         .catch(error => {
@@ -127,8 +175,10 @@ class SSHManagerModule {
             const connectBtn = document.getElementById(`connect-btn-${connName}`);
             const disconnectBtn = document.getElementById(`disconnect-btn-${connName}`);
 
-            statusDiv.className = 'ssh-connection-status disconnected';
-            statusDiv.innerHTML = '状态: 未连接';
+            if (statusDiv) {
+                statusDiv.className = 'ssh-connection-status disconnected';
+                statusDiv.innerHTML = '状态: 未连接';
+            }
 
             // 显示连接按钮，隐藏断开按钮
             if (connectBtn && disconnectBtn) {
@@ -136,7 +186,10 @@ class SSHManagerModule {
                 disconnectBtn.style.display = 'none';
             }
 
-            systemInfoDiv.style.display = 'none';
+            if (systemInfoDiv) {
+                systemInfoDiv.innerHTML = `<div class="ssh-system-info-item error">错误: ${error.message || '连接失败'}</div>`;
+                systemInfoDiv.style.display = 'block';
+            }
         });
     }
 
@@ -172,7 +225,7 @@ class SSHManagerModule {
             .then(data => {
                 if (data.success) {
                     showNotification(data.message, 'success');
-                    // 更新连接状态显示
+                    // 连接成功后延迟检查连接状态，确保SSH连接已完全建立
                     setTimeout(() => {
                         this.checkConnectionStatus(connName);
                     }, 1000);
@@ -199,8 +252,27 @@ class SSHManagerModule {
         .then(data => {
             if (data.success) {
                 showNotification(data.message, 'success');
-                // 更新连接状态显示
-                this.checkConnectionStatus(connName);
+                // 断开连接后更新状态显示，但不调用checkConnectionStatus
+                // 因为连接已经断开，调用API会返回404错误
+                const statusDiv = document.getElementById(`ssh-status-${connName}`);
+                const systemInfoDiv = document.getElementById(`ssh-system-info-${connName}`);
+                const connectBtn = document.getElementById(`connect-btn-${connName}`);
+                const disconnectBtn = document.getElementById(`disconnect-btn-${connName}`);
+
+                if (statusDiv) {
+                    statusDiv.className = 'ssh-connection-status disconnected';
+                    statusDiv.innerHTML = '状态: 未连接';
+                }
+
+                // 显示连接按钮，隐藏断开按钮
+                if (connectBtn && disconnectBtn) {
+                    connectBtn.style.display = 'inline-block';
+                    disconnectBtn.style.display = 'none';
+                }
+
+                if (systemInfoDiv) {
+                    systemInfoDiv.style.display = 'none';
+                }
             } else {
                 showNotification('错误: ' + data.error, 'error');
             }
@@ -562,38 +634,15 @@ class SSHManagerModule {
             window.location.href = '/login';
         });
     }
-
-    // 初始化SSH管理模块
-    init() {
-        // 加载初始连接
-        this.loadSavedConnections();
-
-        // 绑定事件监听器
-        document.getElementById('addSSHConnection').addEventListener('click', () => this.openSSHConfig());
-        document.getElementById('testConnection').addEventListener('click', () => this.testConnection());
-        document.getElementById('saveConnection').addEventListener('click', () => this.saveConnection());
-        document.getElementById('refreshConnections').addEventListener('click', () => this.loadSavedConnections());
-
-        // 认证方式切换事件
-        document.getElementById('authMethod').addEventListener('change', function() {
-            const authMethod = this.value;
-            if (authMethod === 'password') {
-                document.getElementById('passwordField').style.display = 'block';
-                document.getElementById('keyFileField').style.display = 'none';
-            } else {
-                document.getElementById('passwordField').style.display = 'none';
-                document.getElementById('keyFileField').style.display = 'block';
-            }
-        });
-
-        // 控制台命令输入事件
-        document.getElementById('consoleCommand').addEventListener('keypress', function(e) {
-            if (e.keyCode === 13) {
-                sshManagerModule.sendCommand();
-            }
-        });
-    }
 }
 
-// 创建SSH管理模块实例
+// 创建SSH管理器实例
 const sshManagerModule = new SSHManagerModule();
+
+// 页面加载完成后初始化SSH管理器
+document.addEventListener('DOMContentLoaded', function() {
+    // 只在SSH管理页面初始化SSH管理器
+    if (document.getElementById('ssh-tab')) {
+        sshManagerModule.init();
+    }
+});

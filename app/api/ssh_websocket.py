@@ -11,43 +11,69 @@ from app.api.ssh_api import ssh_connections
 
 def handle_ssh_shell_websocket(ws, conn_id):
     """Handle SSH shell WebSocket connections"""
-    if conn_id not in ssh_connections:
-        try:
-            ws.send(json.dumps({"error": "SSH连接不存在"}))
-        except:
-            pass
-        finally:
-            ws.close()
-        return
-    
-    ssh_conn = ssh_connections[conn_id]
-    
-    # Open shell with WebSocket
-    success, message = ssh_conn.open_shell(ws)
-    
-    if not success:
-        try:
-            ws.send(json.dumps({"error": f"打开Shell失败: {message}"}))
-        except:
-            pass
-        finally:
-            ws.close()
-        return
-    
     try:
-        # 发送连接成功的消息
-        ws.send(json.dumps({"output": "SSH连接已建立\n"}))
+        if conn_id not in ssh_connections:
+            try:
+                ws.send(json.dumps({"error": "SSH连接不存在"}))
+            except:
+                pass
+            finally:
+                ws.close()
+            return
         
+        ssh_conn = ssh_connections[conn_id]
+        
+        # Check if connection is established
+        if not ssh_conn.connected:
+            try:
+                ws.send(json.dumps({"error": "SSH连接未建立"}))
+            except:
+                pass
+            finally:
+                ws.close()
+            return
+        
+        # Open shell with WebSocket
+        success, message = ssh_conn.open_shell(ws)
+        
+        if not success:
+            try:
+                ws.send(json.dumps({"error": f"打开Shell失败: {message}"}))
+            except:
+                pass
+            finally:
+                ws.close()
+            return
+        
+        # Send connection success message
+        try:
+            ws.send(json.dumps({"output": "SSH连接已建立\n"}))
+        except:
+            pass
+        
+        # Keep connection alive and handle messages
         while True:
-            data = ws.receive()
-            if data:
+            try:
+                data = ws.receive()
+                if data:
+                    try:
+                        # Try to parse as JSON
+                        message = json.loads(data)
+                        if 'command' in message:
+                            ssh_conn.send_command(message['command'] + '\n')
+                        else:
+                            # Send as raw command
+                            ssh_conn.send_command(data + '\n')
+                    except json.JSONDecodeError:
+                        # If not JSON, send as command directly
+                        ssh_conn.send_command(data + '\n')
+            except Exception as e:
+                # Handle WebSocket receive errors
                 try:
-                    message = json.loads(data)
-                    if 'command' in message:
-                        ssh_conn.send_command(message['command'])
-                except json.JSONDecodeError:
-                    # 如果不是JSON，当作命令直接发送
-                    ssh_conn.send_command(data)
+                    ws.send(json.dumps({"error": f"连接错误: {str(e)}"}))
+                except:
+                    pass
+                break
     except Exception as e:
         print(f"WebSocket连接错误: {str(e)}")
         try:
@@ -55,7 +81,10 @@ def handle_ssh_shell_websocket(ws, conn_id):
         except:
             pass
     finally:
-        ws.close()
+        try:
+            ws.close()
+        except:
+            pass
 
 
 def init_ssh_websocket_routes(sock):

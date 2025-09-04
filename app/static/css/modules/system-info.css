@@ -1,4 +1,17 @@
 /* 系统信息模块样式 */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.system-info-controls {
+    display: flex;
+    gap: 10px;
+}
+
 .system-info-container-vertical {
     display: flex;
     flex-direction: column;
@@ -26,57 +39,49 @@
     color: #333;
     border-bottom: 2px solid #f0f0f0;
     padding-bottom: 10px;
-    font-size: 18px;
-}
-
-.system-info-card h4 {
-    color: #555;
-    margin: 15px 0 10px 0;
-    font-size: 16px;
 }
 
 .metric-row {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
-    padding: 5px 0;
+    font-size: 14px;
 }
 
 .metric-label {
-    font-weight: 600;
+    font-weight: bold;
     color: #555;
 }
 
 .metric-value {
-    font-weight: 500;
     color: #333;
 }
 
 .progress-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin: 10px 0;
+    margin-bottom: 15px;
 }
 
 .progress-bar {
     flex: 1;
-    height: 12px;
+    height: 10px;
     background-color: #e9ecef;
-    border-radius: 6px;
+    border-radius: 5px;
     overflow: hidden;
+    margin-right: 10px;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #007bff, #0056b3);
-    transition: width 0.5s ease;
+    background-color: #007bff;
+    transition: width 0.3s ease;
 }
 
 .progress-text {
-    font-weight: 600;
-    color: #333;
-    min-width: 40px;
+    font-size: 12px;
+    color: #666;
+    min-width: 35px;
     text-align: right;
 }
 
@@ -84,79 +89,83 @@
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-    font-size: 14px;
+    font-size: 13px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
 }
 
 .data-table th {
     background-color: #f8f9fa;
-    padding: 10px;
-    text-align: left;
-    font-weight: 600;
-    border-bottom: 2px solid #dee2e6;
-}
-
-.data-table td {
-    padding: 8px 10px;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.data-table tr:hover {
-    background-color: #f8f9fa;
-}
-
-/* 磁盘信息样式 */
-.disk-info-container .info-item {
-    margin-bottom: 15px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.disk-info-container .info-label {
     font-weight: 600;
     color: #555;
-    font-size: 14px;
 }
 
-.disk-info-container .disk-header {
-    margin-bottom: 8px;
+.data-table tbody tr:hover {
+    background-color: #f8f9fa;
 }
 
-.disk-info-container .disk-usage-text {
+.btn-stop {
+    padding: 6px 12px;
     font-size: 13px;
-    color: #6c757d;
-    margin-bottom: 8px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-.disk-info-container .disk-progress-container {
-    margin-top: 8px;
+.btn-stop:hover {
+    opacity: 0.9;
+}
+
+.disk-info-container {
+    margin-top: 10px;
+}
+
+.info-item {
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background-color: #fafafa;
+}
+
+.disk-header {
+    font-weight: bold;
     margin-bottom: 5px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
+    color: #333;
 }
 
-.disk-info-container .disk-progress-text {
-    font-weight: 600;
-    color: #495057;
-    min-width: 45px;
-    text-align: right;
+.disk-usage-text {
     font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
 }
 
-.disk-info-container .disk-progress-bar {
-    flex: 1;
+.disk-progress-container {
+    width: 100%;
+}
+
+.disk-progress-bar {
     height: 10px;
     background-color: #e9ecef;
     border-radius: 5px;
     overflow: hidden;
+    margin-bottom: 5px;
 }
 
-.disk-info-container .disk-progress-fill {
+.disk-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #007bff, #0056b3);
-    transition: width 0.5s ease;
+    background-color: #28a745;
+    transition: width 0.3s ease;
+}
+
+/* 系统信息折叠状态 */
+#systemInfoContent.collapsed {
+    display: none;
 }

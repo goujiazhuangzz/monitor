@@ -58,6 +58,15 @@ def auth_status():
     })
 
 
+@auth_bp.route('/api/auth/check')
+def auth_check():
+    """检查用户是否已认证"""
+    if 'username' in session:
+        return jsonify({'authenticated': True, 'username': session['username']})
+    else:
+        return jsonify({'authenticated': False}), 401
+
+
 @auth_bp.route('/api/auth/change_password', methods=['POST'])
 def change_password():
     if 'username' not in session:

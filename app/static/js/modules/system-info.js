@@ -9,6 +9,7 @@ class SystemInfoModule {
     getSystemInfo() {
         fetch('/api/system/info')
             .then(response => {
+                // 检查是否未认证
                 if (response.status === 401) {
                     window.location.href = '/login';
                     return;
@@ -16,94 +17,104 @@ class SystemInfoModule {
                 return response.json();
             })
             .then(data => {
-                if (!data || data.error) {
-                    console.error('Error fetching system info:', data?.error || 'Unknown error');
+                // 检查数据是否有效
+                if (!data) {
+                    console.error('Error fetching system info: Empty response');
+                    return;
+                }
+                
+                // 检查是否有错误信息
+                if (data.error) {
+                    console.error('Error fetching system info:', data.error);
                     return;
                 }
 
-                // 更新CPU信息
-                document.getElementById('cpuPercent').textContent = data.cpu.percent.toFixed(1) + '%';
-                document.getElementById('cpuCount').textContent = data.cpu.count;
-                document.getElementById('cpuProgress').style.width = data.cpu.percent + '%';
-                document.getElementById('cpuProgressText').textContent = data.cpu.percent.toFixed(1) + '%';
+                try {
+                    // 更新CPU信息
+                    document.getElementById('cpuPercent').textContent = data.cpu.percent.toFixed(1) + '%';
+                    document.getElementById('cpuCount').textContent = data.cpu.count;
+                    document.getElementById('cpuProgress').style.width = data.cpu.percent + '%';
+                    document.getElementById('cpuProgressText').textContent = data.cpu.percent.toFixed(1) + '%';
 
-                // 更新内存信息
-                const memoryUsedGB = (data.memory.used / (1024**3)).toFixed(2);
-                const memoryTotalGB = (data.memory.total / (1024**3)).toFixed(2);
-                document.getElementById('memoryPercent').textContent = data.memory.percent.toFixed(1) + '%';
-                document.getElementById('memoryUsed').textContent = memoryUsedGB + ' GB';
-                document.getElementById('memoryTotal').textContent = memoryTotalGB + ' GB';
-                document.getElementById('memoryProgress').style.width = data.memory.percent + '%';
-                document.getElementById('memoryProgressText').textContent = data.memory.percent.toFixed(1) + '%';
+                    // 更新内存信息
+                    const memoryUsedGB = (data.memory.used / (1024**3)).toFixed(2);
+                    const memoryTotalGB = (data.memory.total / (1024**3)).toFixed(2);
+                    document.getElementById('memoryPercent').textContent = data.memory.percent.toFixed(1) + '%';
+                    document.getElementById('memoryUsed').textContent = memoryUsedGB + ' GB';
+                    document.getElementById('memoryTotal').textContent = memoryTotalGB + ' GB';
+                    document.getElementById('memoryProgress').style.width = data.memory.percent + '%';
+                    document.getElementById('memoryProgressText').textContent = data.memory.percent.toFixed(1) + '%';
 
-                // 更新CPU进程列表
-                const cpuProcessesBody = document.getElementById('cpuProcesses');
-                cpuProcessesBody.innerHTML = '';
-                data.top_processes.cpu.forEach(proc => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${proc.pid}</td>
-                        <td>${proc.name}</td>
-                        <td>${proc.cpu_percent !== null ? proc.cpu_percent.toFixed(1) : 'N/A'}</td>
-                        <td><button class="btn btn-stop" onclick="systemInfoModule.killProcess(${proc.pid})">杀掉</button></td>
-                    `;
-                    cpuProcessesBody.appendChild(row);
-                });
-
-                // 更新内存进程列表
-                const memoryProcessesBody = document.getElementById('memoryProcesses');
-                memoryProcessesBody.innerHTML = '';
-                data.top_processes.memory.forEach(proc => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${proc.pid}</td>
-                        <td>${proc.name}</td>
-                        <td>${proc.memory_percent !== null ? proc.memory_percent.toFixed(1) : 'N/A'}%</td>
-                        <td><button class="btn btn-stop" onclick="systemInfoModule.killProcess(${proc.pid})">杀掉</button></td>
-                    `;
-                    memoryProcessesBody.appendChild(row);
-                });
-
-                // 更新磁盘信息
-                const diskInfoContainer = document.getElementById('diskInfoContainer');
-                diskInfoContainer.innerHTML = '';
-                
-                if (data.disks && Array.isArray(data.disks)) {
-                    // 检查是否有磁盘数据
-                    if (data.disks.length === 0) {
-                        diskInfoContainer.innerHTML = '<div class="info-item">未检测到磁盘分区</div>';
-                        return;
-                    }
-                    
-                    data.disks.forEach(disk => {
-                        // 添加对磁盘数据的验证，避免因数据缺失导致程序崩溃
-                        if (!disk.device || !disk.mountpoint) {
-                            return; // 跳过无效的磁盘数据
+                    // 更新CPU进程列表
+                    const cpuProcessesBody = document.getElementById('cpuProcesses');
+                    if (cpuProcessesBody) {
+                        cpuProcessesBody.innerHTML = '';
+                        if (data.top_processes && data.top_processes.cpu) {
+                            data.top_processes.cpu.forEach(proc => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${proc.pid}</td>
+                                    <td>${proc.name}</td>
+                                    <td>${proc.cpu_percent !== null ? proc.cpu_percent.toFixed(1) : 'N/A'}</td>
+                                    <td><button class="btn btn-stop" onclick="systemInfoModule.killProcess(${proc.pid})">杀掉</button></td>
+                                `;
+                                cpuProcessesBody.appendChild(row);
+                            });
                         }
+                    }
+
+                    // 更新内存进程列表
+                    const memoryProcessesBody = document.getElementById('memoryProcesses');
+                    if (memoryProcessesBody) {
+                        memoryProcessesBody.innerHTML = '';
+                        if (data.top_processes && data.top_processes.memory) {
+                            data.top_processes.memory.forEach(proc => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${proc.pid}</td>
+                                    <td>${proc.name}</td>
+                                    <td>${proc.memory_percent !== null ? proc.memory_percent.toFixed(1) : 'N/A'}</td>
+                                    <td><button class="btn btn-stop" onclick="systemInfoModule.killProcess(${proc.pid})">杀掉</button></td>
+                                `;
+                                memoryProcessesBody.appendChild(row);
+                            });
+                        }
+                    }
+
+                    // 更新磁盘信息部分
+                    const diskInfoContainer = document.getElementById('diskInfoContainer');
+                    if (diskInfoContainer) {
+                        diskInfoContainer.innerHTML = '';
                         
-                        const diskItem = document.createElement('div');
-                        diskItem.className = 'info-item';
-                        
-                        // 计算GB单位的值，避免在模板中计算
-                        const totalGB = disk.total ? (disk.total / (1024**3)).toFixed(2) : '0.00';
-                        const usedGB = disk.used ? (disk.used / (1024**3)).toFixed(2) : '0.00';
-                        const percent = disk.percent ? disk.percent.toFixed(1) : '0.0';
-                        
-                        diskItem.innerHTML = `
-                            <div class="disk-header">${disk.device} (${disk.mountpoint})</div>
-                            <div class="disk-usage-text">${usedGB} GB / ${totalGB} GB</div>
-                            <div class="disk-progress-container">
-                                <div class="disk-progress-bar">
-                                    <div class="disk-progress-fill" style="width: ${percent}%"></div>
-                                </div>
-                                <div class="disk-progress-text">${percent}%</div>
-                            </div>
-                        `;
-                        diskInfoContainer.appendChild(diskItem);
-                    });
-                } else {
-                    // 如果没有磁盘数据，显示提示信息
-                    diskInfoContainer.innerHTML = '<div class="info-item">暂无磁盘信息</div>';
+                        if (data.disks && data.disks.length > 0) {
+                            data.disks.forEach(disk => {
+                                const diskItem = document.createElement('div');
+                                diskItem.className = 'info-item';
+                                
+                                const usedGB = (disk.used / (1024**3)).toFixed(2);
+                                const totalGB = (disk.total / (1024**3)).toFixed(2);
+                                const percent = disk.percent.toFixed(1);
+                                
+                                diskItem.innerHTML = `
+                                    <div class="disk-header">
+                                        <span class="info-label">${disk.device} (${disk.mountpoint})</span>
+                                    </div>
+                                    <div class="disk-usage-text">${usedGB} GB / ${totalGB} GB (${percent}%)</div>
+                                    <div class="disk-progress-container">
+                                        <div class="disk-progress-bar">
+                                            <div class="disk-progress-fill" style="width: ${percent}%"></div>
+                                        </div>
+                                    </div>
+                                `;
+                                diskInfoContainer.appendChild(diskItem);
+                            });
+                        } else {
+                            // 如果没有磁盘数据，显示提示信息
+                            diskInfoContainer.innerHTML = '<div class="info-item">暂无磁盘信息</div>';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error updating system info UI:', e);
                 }
             })
             .catch(error => {
@@ -181,9 +192,19 @@ class SystemInfoModule {
         this.getSystemInfo();
 
         // 绑定事件监听器
-        document.getElementById('refreshSystemInfo').addEventListener('click', () => this.getSystemInfo());
-        document.getElementById('autoRefreshSystemInfo').addEventListener('click', () => this.toggleAutoRefreshSystemInfo());
-        document.getElementById('toggleSystemInfo').addEventListener('click', () => this.toggleSystemInfo());
+        const refreshBtn = document.getElementById('refreshSystemInfo');
+        const autoRefreshBtn = document.getElementById('autoRefreshSystemInfo');
+        const toggleBtn = document.getElementById('toggleSystemInfo');
+        
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.getSystemInfo());
+        }
+        if (autoRefreshBtn) {
+            autoRefreshBtn.addEventListener('click', () => this.toggleAutoRefreshSystemInfo());
+        }
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => this.toggleSystemInfo());
+        }
     }
 }
 
