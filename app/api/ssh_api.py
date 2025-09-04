@@ -108,6 +108,16 @@ def ssh_connect():
         return jsonify({'error': str(e)}), 500
 
 
+@ssh_bp.route('/api/ssh/connections', methods=['GET'])
+def get_ssh_connections():
+    """获取当前活动的SSH连接列表"""
+    try:
+        active_connections = list(ssh_connections.keys())
+        return jsonify(active_connections)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @ssh_bp.route('/api/ssh/disconnect', methods=['POST'])
 def ssh_disconnect():
     """断开SSH连接"""

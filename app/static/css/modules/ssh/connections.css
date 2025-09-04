@@ -1,0 +1,291 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f7fa;
+}
+
+#app {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    margin: 0;
+    color: #303133;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.menu {
+    display: flex;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
+.menu-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.menu-item.active {
+    background-color: #409eff;
+    color: white;
+}
+
+.menu-item:hover:not(.active) {
+    background-color: #f5f7fa;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.notification.success {
+    background-color: #67c23a;
+}
+
+.notification.error {
+    background-color: #f56c6c;
+}
+
+.notification.info {
+    background-color: #909399;
+}
+
+/* 优化控制台对话框 */
+.el-dialog {
+    border-radius: 8px;
+}
+
+.console-container {
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid #333;
+}
+
+.console-header {
+    background-color: #2d2d2d;
+    color: #ccc;
+    padding: 8px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px; /* 增加字体大小 */
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.console-output {
+    flex: 1;
+    padding: 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #ffffff;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background-color: #1e1e1e;
+}
+
+/* 控制台消息样式 */
+.console-message {
+    margin-bottom: 4px;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.console-message:last-child {
+    margin-bottom: 0;
+}
+
+/* ANSI颜色代码支持 */
+.console-output .ansi-black {
+    color: #000000;
+}
+
+.console-output .ansi-red {
+    color: #f44336;
+}
+
+.console-output .ansi-green {
+    color: #4caf50;
+}
+
+.console-output .ansi-yellow {
+    color: #ffeb3b;
+}
+
+.console-output .ansi-blue {
+    color: #2196f3;
+}
+
+.console-output .ansi-magenta {
+    color: #e91e63;
+}
+
+.console-output .ansi-cyan {
+    color: #00bcd4;
+}
+
+.console-output .ansi-white {
+    color: #ffffff;
+}
+
+.console-output .ansi-bold {
+    font-weight: bold;
+}
+
+.console-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+.console-output::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+.console-output::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.console-output::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+.console-input-container {
+    padding: 12px;
+    background-color: #2d2d2d;
+    border-top: 1px solid #333;
+}
+
+.console-input .el-input__inner {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: border-color 0.3s;
+}
+
+.console-input .el-input__inner:focus {
+    border-color: #409eff;
+    outline: none;
+}
+
+.console-toolbar {
+    display: flex;
+    gap: 10px;
+    padding: 8px 12px;
+    background-color: #252525;
+    border-bottom: 1px solid #333;
+}
+
+.console-toolbar .el-button {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.console-toolbar .el-button:hover {
+    background-color: #409eff;
+    color: white;
+}
+
+.console-status {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #888;
+}
+
+/* 不同类型消息的样式 */
+.console-message.info {
+    background-color: #294e8a;
+    color: #d0e0ff;
+    border-left: 4px solid #409eff;
+}
+
+.console-message.success {
+    background-color: #2e6c5a;
+    color: #d6f5e0;
+    border-left: 4px solid #67c23a;
+}
+
+.console-message.warning {
+    background-color: #8a6d3b;
+    color: #fffbe3;
+    border-left: 4px solid #e6a23c;
+}
+
+.console-message.error {
+    background-color: #7a2d2d;
+    color: #ffe0e0;
+    border-left: 4px solid #f56c6c;
+    animation: shake 0.5s ease-in-out;
+}
+
+/* 消息闪烁动画 */
+@keyframes flash {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* 消息晃动动画 */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
