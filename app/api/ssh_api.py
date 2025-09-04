@@ -340,6 +340,8 @@ def ssh_system_info():
                 }
             })
         except Exception as cmd_error:
+            app.logger.error(f'Error executing SSH commands: {str(cmd_error)}')
             return jsonify({'success': False, 'error': f'执行命令时出错: {str(cmd_error)}'}), 200
     except Exception as e:
+        app.logger.error(f'Error in SSH system info endpoint: {str(e)}')
         return jsonify({'success': False, 'error': str(e)}), 200

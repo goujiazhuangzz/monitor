@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSH远程连接 - Python脚本监控工具</title>
+    <!-- 引入Vue 3 -->
+    <script src="{{ url_for('static', filename='js/vendor/vue.global.js') }}"></script>
+    <!-- 引入Element Plus -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vendor/element-plus.css') }}">
+    <script src="{{ url_for('static', filename='js/vendor/element-plus.js') }}"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        
+        #app {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: #303133;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #303133;
+            border-bottom: 1px solid #ebeef5;
+            padding-bottom: 10px;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .progress-label {
+            width: 80px;
+            font-weight: 500;
+            color: #606266;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            margin: 0 10px;
+        }
+        
+        .progress-text {
+            width: 50px;
+            text-align: right;
+            font-size: 14px;
+            color: #909399;
+        }
+        
+        .disk-item {
+            padding: 15px;
+            background-color: #f5f7fa;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .disk-header {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #303133;
+        }
+        
+        .disk-usage {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 8px;
+        }
+        
+        .process-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .process-table th,
+        .process-table td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ebeef5;
+        }
+        
+        .process-table th {
+            background-color: #f5f7fa;
+            font-weight: 500;
+            color: #909399;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .notification.success {
+            background-color: #67c23a;
+        }
+        
+        .notification.error {
+            background-color: #f56c6c;
+        }
+        
+        .menu {
+            display: flex;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        
+        .menu-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        
+        .menu-item.active {
+            background-color: #409eff;
+            color: white;
+        }
+        
+        .menu-item:hover:not(.active) {
+            background-color: #f5f7fa;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>Python脚本监控工具</h1>
+            <div class="user-info">
+                <span>欢迎, {{ session.username }}!</span>
+                <el-button type="primary" @click="showChangePasswordDialog = true">修改密码</el-button>
+                <a href="{{ url_for('auth.logout') }}">
+                    <el-button type="danger">注销</el-button>
+                </a>
+            </div>
+        </div>
+        
+        <div class="menu">
+            <div class="menu-item" :class="{ active: activeMenu === 'system' }" @click="navigateTo('system')">系统信息</div>
+            <div class="menu-item" :class="{ active: activeMenu === 'local' }" @click="navigateTo('local')">本地脚本管理</div>
+            <div class="menu-item" :class="{ active: activeMenu === 'ssh' }" @click="navigateTo('ssh')">SSH远程连接</div>
+            <div class="menu-item" :class="{ active: activeMenu === 'config' }" @click="navigateTo('config')">配置管理</div>
+        </div>
+        
+        <ssh-connections></ssh-connections>
+        
+        <!-- 修改密码对话框 -->
+        <el-dialog v-model="showChangePasswordDialog" title="修改密码" width="400px">
+            <el-form :model="passwordForm" ref="passwordFormRef">
+                <el-form-item label="当前密码" prop="currentPassword">
+                    <el-input v-model="passwordForm.currentPassword" type="password" show-password></el-input>
+                </el-form-item>
+                <el-form-item label="新密码" prop="newPassword">
+                    <el-input v-model="passwordForm.newPassword" type="password" show-password></el-input>
+                </el-form-item>
+                <el-form-item label="确认新密码" prop="confirmPassword">
+                    <el-input v-model="passwordForm.confirmPassword" type="password" show-password></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="showChangePasswordDialog = false">取消</el-button>
+                    <el-button type="primary" @click="changePassword">确定</el-button>
+                </span>
+            </template>
+        </el-dialog>
+        
+        <!-- 通知消息 -->
+        <div v-if="notification && notification.message" 
+             :class="['notification', notification.type]"
+             @click="hideNotification">
+            {[{ notification.message }]}
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, onMounted, onBeforeUnmount, computed, provide, inject } = Vue;
+        const { ElButton, ElTabs, ElTabPane, ElDialog, ElForm, ElFormItem, ElInput, ElCard, 
+                ElRow, ElCol, ElProgress, ElTable, ElTableColumn, ElTag, ElMessageBox } = ElementPlus;
+        
+        // SSH连接组件
+        const SSHConnections = {
+            template: `
+                <div>
+                    <el-card style="margin-bottom: 20px;">
+                        <h3 style="margin-top: 0;">SSH连接配置</h3>
+                        <el-form :model="sshForm" label-width="100px">
+                            <el-row :gutter="20">
+                                <el-col :span="12">
+                                    <el-form-item label="连接名称">
+                                        <el-input v-model="sshForm.name"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12">
+                                    <el-form-item label="主机地址">
+                                        <el-input v-model="sshForm.host"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            
+                            <el-row :gutter="20">
+                                <el-col :span="12">
+                                    <el-form-item label="端口">
+                                        <el-input v-model="sshForm.port" type="number"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12">
+                                    <el-form-item label="用户名">
+                                        <el-input v-model="sshForm.username"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            
+                            <el-row :gutter="20">
+                                <el-col :span="12">
+                                    <el-form-item label="认证方式">
+                                        <el-select v-model="sshForm.auth_method" style="width: 100%;">
+                                            <el-option label="密码" value="password"></el-option>
+                                            <el-option label="密钥文件" value="key_file"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12">
+                                    <el-form-item label="密码" v-if="sshForm.auth_method === 'password'">
+                                        <el-input v-model="sshForm.password" type="password" show-password></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="密钥文件" v-else>
+                                        <el-input v-model="sshForm.key_file"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            
+                            <el-form-item>
+                                <el-button type="primary" @click="saveConnection">保存连接</el-button>
+                                <el-button @click="testConnection">测试连接</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </el-card>
+                    
+                    <el-card>
+                        <h3 style="margin-top: 0;">已保存的连接</h3>
+                        <el-button @click="loadSavedConnections" style="float: right;">刷新</el-button>
+                        <div style="clear: both;"></div>
+                        <el-table :data="savedConnections" style="width: 100%">
+                            <el-table-column prop="name" label="连接名称"></el-table-column>
+                            <el-table-column prop="host" label="主机地址"></el-table-column>
+                            <el-table-column prop="port" label="端口" width="80"></el-table-column>
+                            <el-table-column prop="username" label="用户名"></el-table-column>
+                            <el-table-column label="状态" width="120">
+                                <template #default="scope">
+                                    <el-tag :type="scope.row.connected ? 'success' : 'danger'">
+                                        {[{ getConnectionStatusText(scope.row.connected) }]}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="300">
+                                <template #default="scope">
+                                    <div class="action-buttons">
+                                        <el-button size="small" type="primary" 
+                                                   @click="connectToServer(scope.row.name)"
+                                                   v-if="!scope.row.connected">连接</el-button>
+                                        <el-button size="small" type="warning" 
+                                                   @click="disconnectFromServer(scope.row.name)"
+                                                   v-else>断开</el-button>
+                                        <el-button size="small" type="success" 
+                                                   @click="openConsole(scope.row.name)">控制台</el-button>
+                                        <el-button size="small" type="danger" 
+                                                   @click="deleteConnection(scope.row.name)">删除</el-button>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </el-card>
+                </div>
+            `,
+            setup() {
+                const sshForm = reactive({
+                    name: '',
+                    host: '',
+                    port: 22,
+                    username: '',
+                    auth_method: 'password',
+                    password: '',
+                    key_file: ''
+                });
+                
+                const savedConnections = ref([]);
+                
+                const loadSavedConnections = async () => {
+                    try {
+                        const response = await fetch('/api/ssh/config');
+                        const config = await response.json();
+                        savedConnections.value = config.connections || [];
+                    } catch (error) {
+                        console.error('加载SSH连接失败:', error);
+                    }
+                };
+                
+                const getConnectionStatusText = (connected) => {
+                    return connected ? '已连接' : '未连接';
+                };
+                
+                const saveConnection = async () => {
+                    try {
+                        const connectionData = { ...sshForm };
+                        const response = await fetch('/api/ssh/save_connection', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(connectionData)
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: data.message, type: 'success' });
+                            loadSavedConnections();
+                            // 清空表单
+                            Object.assign(sshForm, {
+                                name: '',
+                                host: '',
+                                port: 22,
+                                username: '',
+                                auth_method: 'password',
+                                password: '',
+                                key_file: ''
+                            });
+                        } else {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: `保存连接失败: ${data.error}`, type: 'error' });
+                        }
+                    } catch (error) {
+                        const emit = inject('emit');
+                        emit('show-notification', { message: '保存连接时出错', type: 'error' });
+                    }
+                };
+                
+                const testConnection = async () => {
+                    try {
+                        const testData = { ...sshForm };
+                        const response = await fetch('/api/ssh/test_connection', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(testData)
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: data.message, type: 'success' });
+                        } else {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: `连接测试失败: ${data.error}`, type: 'error' });
+                        }
+                    } catch (error) {
+                        const emit = inject('emit');
+                        emit('show-notification', { message: '连接测试时出错', type: 'error' });
+                    }
+                };
+                
+                const connectToServer = async (connName) => {
+                    try {
+                        const response = await fetch('/api/ssh/config');
+                        const config = await response.json();
+                        const conn = config.connections.find(c => c.name === connName);
+                        
+                        if (!conn) {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: '未找到连接配置', type: 'error' });
+                            return;
+                        }
+                        
+                        const connData = {
+                            host: conn.host,
+                            port: conn.port,
+                            username: conn.username,
+                            password: conn.password,
+                            key_file: conn.key_file,
+                            conn_id: connName
+                        };
+                        
+                        const connectResponse = await fetch('/api/ssh/connect', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(connData)
+                        });
+                        
+                        const data = await connectResponse.json();
+                        if (data.success) {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: data.message, type: 'success' });
+                            // 延迟检查连接状态
+                            setTimeout(() => {
+                                loadSavedConnections();
+                            }, 1000);
+                        } else {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: `连接失败: ${data.error}`, type: 'error' });
+                        }
+                    } catch (error) {
+                        const emit = inject('emit');
+                        emit('show-notification', { message: '连接到服务器时出错', type: 'error' });
+                    }
+                };
+                
+                const disconnectFromServer = async (connName) => {
+                    try {
+                        const response = await fetch('/api/ssh/disconnect', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ conn_id: connName })
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: data.message, type: 'success' });
+                            loadSavedConnections();
+                        } else {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: `断开连接失败: ${data.error}`, type: 'error' });
+                        }
+                    } catch (error) {
+                        const emit = inject('emit');
+                        emit('show-notification', { message: '断开服务器连接时出错', type: 'error' });
+                    }
+                };
+                
+                const deleteConnection = async (connName) => {
+                    try {
+                        await ElMessageBox.confirm(
+                            `确定要删除连接 "${connName}" 吗?`,
+                            '确认操作',
+                            {
+                                confirmButtonText: '确定',
+                                cancelButtonText: '取消',
+                                type: 'warning',
+                            }
+                        );
+                        
+                        const response = await fetch(`/api/ssh/delete_connection/${connName}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: data.message, type: 'success' });
+                            loadSavedConnections();
+                        } else {
+                            const emit = inject('emit');
+                            emit('show-notification', { message: `删除连接失败: ${data.error}`, type: 'error' });
+                        }
+                    } catch {
+                        // 用户取消操作
+                    }
+                };
+                
+                const openConsole = (connName) => {
+                    // 这里应该打开SSH控制台，但需要WebSocket支持
+                    const emit = inject('emit');
+                    emit('show-notification', { message: 'SSH控制台功能尚未实现', type: 'info' });
+                };
+                
+                onMounted(() => {
+                    loadSavedConnections();
+                });
+                
+                return {
+                    sshForm,
+                    savedConnections,
+                    loadSavedConnections,
+                    getConnectionStatusText,
+                    saveConnection,
+                    testConnection,
+                    connectToServer,
+                    disconnectFromServer,
+                    deleteConnection,
+                    openConsole
+                };
+            }
+        };
+        
+        // 主应用
+        const app = createApp({
+            components: {
+                SSHConnections
+            },
+            setup() {
+                const activeMenu = ref('ssh');
+                const showChangePasswordDialog = ref(false);
+                const passwordForm = reactive({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: ''
+                });
+                const passwordFormRef = ref(null);
+                const notification = reactive({
+                    message: '',
+                    type: 'success'
+                });
+                const notificationTimeout = ref(null);
+                
+                const showNotification = (data) => {
+                    notification.message = data.message;
+                    notification.type = data.type;
+                    
+                    // 清除之前的定时器
+                    if (notificationTimeout.value) {
+                        clearTimeout(notificationTimeout.value);
+                    }
+                    
+                    // 3秒后自动隐藏通知
+                    notificationTimeout.value = setTimeout(() => {
+                        notification.message = '';
+                    }, 3000);
+                };
+                
+                const hideNotification = () => {
+                    notification.message = '';
+                    if (notificationTimeout.value) {
+                        clearTimeout(notificationTimeout.value);
+                    }
+                };
+                
+                const changePassword = async () => {
+                    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+                        showNotification({ message: '新密码和确认密码不匹配', type: 'error' });
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch('/api/auth/change_password', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                current_password: passwordForm.currentPassword,
+                                new_password: passwordForm.newPassword
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            showNotification({ message: data.message, type: 'success' });
+                            showChangePasswordDialog.value = false;
+                            // 清空表单
+                            Object.assign(passwordForm, {
+                                currentPassword: '',
+                                newPassword: '',
+                                confirmPassword: ''
+                            });
+                        } else {
+                            showNotification({ message: `修改密码失败: ${data.error}`, type: 'error' });
+                        }
+                    } catch (error) {
+                        showNotification({ message: '修改密码时出错', type: 'error' });
+                    }
+                };
+                
+                const navigateTo = (menu) => {
+                    activeMenu.value = menu;
+                    switch(menu) {
+                        case 'system':
+                            window.location.href = '/system_info';
+                            break;
+                        case 'local':
+                            window.location.href = '/local_scripts';
+                            break;
+                        case 'ssh':
+                            window.location.href = '/ssh_connections';
+                            break;
+                        case 'config':
+                            window.location.href = '/config_manager';
+                            break;
+                    }
+                };
+                
+                // 提供全局事件
+                const emit = (event, data) => {
+                    if (event === 'show-notification') {
+                        showNotification(data);
+                    }
+                };
+                
+                provide('emit', emit);
+                
+                return {
+                    activeMenu,
+                    showChangePasswordDialog,
+                    passwordForm,
+                    passwordFormRef,
+                    notification,
+                    showNotification,
+                    hideNotification,
+                    changePassword,
+                    navigateTo
+                };
+            }
+        });
+        
+        app.config.compilerOptions.delimiters = ['{[{', '}]}'];
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

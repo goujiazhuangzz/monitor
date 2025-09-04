@@ -1,6 +1,7 @@
 {
   "monitor_paths": [
-    "/Users/liuzhiqiang/shell/monitor/"
+    "/Users/liuzhiqiang/shell/monitor/",
+    "../"
   ],
   "exclude_patterns": []
 }

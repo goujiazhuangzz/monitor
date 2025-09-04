@@ -99,8 +99,32 @@ def create_app():
     @app.route('/')
     @require_auth
     def index():
+        from flask import render_template, redirect, url_for
+        return redirect(url_for('system_info'))
+    
+    @app.route('/system_info')
+    @require_auth
+    def system_info():
         from flask import render_template
-        return render_template('index.html')
+        return render_template('modules/system_info.html')
+    
+    @app.route('/local_scripts')
+    @require_auth
+    def local_scripts():
+        from flask import render_template
+        return render_template('modules/local_scripts.html')
+    
+    @app.route('/ssh_connections')
+    @require_auth
+    def ssh_connections():
+        from flask import render_template
+        return render_template('modules/ssh_connections.html')
+    
+    @app.route('/config_manager')
+    @require_auth
+    def config_manager():
+        from flask import render_template
+        return render_template('modules/config_manager.html')
     
     # Add app reference to request context
     @app.before_request
