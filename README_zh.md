@@ -1,6 +1,192 @@
 # Python脚本监控工具
 
-一个功能强大且易于使用的Python脚本监控工具。该工具提供Web界面，用于启动、停止、监控和查看本地或通过SSH连接的远程服务器上运行的Python脚本日志。
+一个现代化的基于Web的Python脚本监控和管理工具，支持本地脚本管理和SSH远程服务器连接。
+
+## 目录
+
+- [项目架构](#项目架构)
+- [功能特性](#功能特性)
+- [环境要求](#环境要求)
+- [快速开始](#快速开始)
+- [手动安装](#手动安装)
+- [使用说明](#使用说明)
+- [项目结构](#项目结构)
+- [技术栈](#技术栈)
+- [API文档](#api文档)
+- [注意事项](#注意事项)
+
+## 项目架构
+
+本项目采用现代化的前后端分离架构：
+
+```
+monitor/
+├── backend/          # 后端服务（Python Flask API）
+├── frontend/         # 前端界面（Vue 3 + Element Plus）
+├── start.sh         # 一键启动脚本
+└── README.md        # 项目说明文档
+```
+
+## 功能特性
+
+1. **SSH连接管理** - 管理多个SSH连接，支持密码和密钥认证
+2. **WebSSH终端** - 在浏览器中直接使用SSH终端，支持颜色显示
+3. **本地脚本管理** - 管理本地Python脚本文件，支持执行和查看输出
+4. **系统监控** - 实时显示系统资源使用情况（CPU、内存、磁盘）
+5. **配置管理** - 统一管理监控路径、SSH连接和用户认证配置
+
+## 环境要求
+
+### 后端要求
+- Python 3.6+
+- pip包管理器
+
+### 前端要求
+- Node.js 12+
+- npm包管理器
+
+## 快速开始
+
+### 使用启动脚本（推荐）
+
+```bash
+# 克隆项目后，进入项目目录
+cd monitor
+
+# 运行启动脚本（会自动检查并安装依赖）
+./start.sh
+```
+
+脚本将：
+1. 检查并安装后端Python依赖
+2. 检查并安装前端Node.js依赖
+3. 启动后端服务（默认：http://127.0.0.1:5000）
+4. 启动前端服务（默认：http://localhost:3000）
+
+## 手动安装
+
+### 后端设置
+
+```bash
+# 进入后端目录
+cd backend
+
+# （可选）创建虚拟环境
+python -m venv venv
+source venv/bin/activate  # Windows系统使用: venv\Scripts\activate
+
+# 安装Python依赖
+pip install -r requirements.txt
+
+# 启动后端服务
+python run.py
+```
+
+后端服务运行在 `http://127.0.0.1:5000`
+
+### 前端设置
+
+```bash
+# 进入前端目录
+cd frontend
+
+# 安装前端依赖
+npm install
+
+# 启动前端开发服务器
+npm run dev
+```
+
+前端服务运行在 `http://localhost:3000`
+
+## 使用说明
+
+1. 启动服务后，访问前端地址 `http://localhost:3000`
+2. 使用默认账号登录：
+   - 用户名: `admin`
+   - 密码: `123456`
+3. 登录后可以配置SSH连接、管理脚本、查看系统信息等
+
+## 项目结构
+
+```
+monitor/
+├── backend/                    # 后端源代码
+│   ├── app/                   # Flask应用
+│   │   ├── api/              # API接口
+│   │   ├── models/           # 数据模型
+│   │   ├── utils/            # 工具函数
+│   │   └── __init__.py       # 应用初始化
+│   ├── run.py                # 应用入口
+│   ├── requirements.txt      # Python依赖
+│   └── 配置文件               # JSON配置文件
+├── frontend/                 # 前端源代码
+│   ├── src/                  # Vue源代码
+│   │   ├── assets/          # 静态资源
+│   │   ├── components/      # Vue组件
+│   │   ├── views/           # 页面组件
+│   │   ├── router/          # 路由配置
+│   │   └── main.js          # 应用入口
+│   ├── package.json         # Node.js依赖
+│   └── vite.config.js       # Vite配置
+├── start.sh                 # 一键启动脚本
+└── README.md               # 项目说明文档
+```
+
+## 技术栈
+
+### 后端
+- **Python 3** - 编程语言
+- **Flask** - Web框架
+- **Paramiko** - SSH库
+- **Psutil** - 系统监控库
+
+### 前端
+- **Vue 3** - 渐进式JavaScript框架
+- **Vite** - 构建工具
+- **Element Plus** - Vue 3组件库
+- **Vue Router** - 路由管理
+
+## API文档
+
+所有后端API都是RESTful风格，可通过`/api/`前缀访问：
+
+### 认证相关
+- `POST /api/auth/login` - 用户登录
+- `POST /api/auth/change_password` - 修改密码
+- `GET /api/auth/users` - 获取用户列表
+- `POST /api/auth/add_user` - 添加用户
+- `DELETE /api/auth/delete_user/<username>` - 删除用户
+
+### SSH管理
+- `GET /api/ssh/config` - 获取SSH配置
+- `POST /api/ssh/save_connection` - 保存SSH连接
+- `DELETE /api/ssh/delete_connection/<conn_name>` - 删除SSH连接
+- `POST /api/ssh/connect` - 建立SSH连接
+- `POST /api/ssh/disconnect` - 断开SSH连接
+- `GET /api/ssh/connections` - 获取活动连接
+
+### 脚本管理
+- `GET /api/scripts/list` - 列出Python脚本
+- `POST /api/scripts/run` - 运行Python脚本
+- `GET /api/scripts/content` - 获取脚本内容
+- `POST /api/scripts/save` - 保存脚本内容
+- `POST /api/scripts/delete` - 删除脚本
+
+### 配置管理
+- `GET /api/config/monitor` - 获取监控配置
+- `POST /api/config/monitor` - 保存监控配置
+
+### 系统信息
+- `GET /api/system/info` - 获取系统信息
+
+## 注意事项
+
+1. 首次运行时，启动脚本会自动检查并安装所需依赖
+2. 前端和后端可以独立部署
+3. 所有配置信息保存在JSON文件中，便于管理和迁移
+4. 使用启动脚本时，按Ctrl+C可以优雅地停止所有服务
+5. 生产环境部署时，建议使用生产级WSGI服务器运行后端服务
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -28,7 +214,7 @@
 
 ### 方法一：使用启动脚本（推荐）
 
-```bash
+```
 ./run_monitor.sh
 ```
 
@@ -48,7 +234,7 @@ python run.py
 
 ### 方法三：使用自定义端口运行
 
-```bash
+```
 python run.py -p 8080
 ```
 
@@ -77,7 +263,7 @@ python run.py -p 8080
 - `exclude_patterns`：从监控中排除文件的模式
 
 配置示例：
-```json
+```
 {
   "monitor_paths": [
     ".",
@@ -97,7 +283,7 @@ python run.py -p 8080
 SSH连接在 [ssh_config.json](ssh_config.json) 文件中配置：
 
 配置示例：
-```json
+```
 {
   "connections": [
     {

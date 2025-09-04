@@ -1,0 +1,9 @@
+{
+  "monitor_paths": [
+    ".",
+    "../"
+  ],
+  "exclude_patterns": [
+    "monitor.py"
+  ]
+}

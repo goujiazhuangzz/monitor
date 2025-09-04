@@ -1,284 +1,378 @@
 # Python Script Monitor
 
-A powerful and easy-to-use monitoring tool for managing Python scripts. This tool provides a web interface to start, stop, monitor, and view logs of Python scripts running on your local machine or remote servers via SSH.
+A modern web-based tool for monitoring and managing Python scripts, featuring local script management and SSH remote server connectivity.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Manual Installation](#manual-installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Technology Stack](#technology-stack)
+- [API Documentation](#api-documentation)
+- [Notes](#notes)
+
+## Architecture
+
+This project follows a modern frontend-backend separation architecture:
+
+```
+monitor/
+├── backend/          # Backend service (Python Flask API)
+├── frontend/         # Frontend interface (Vue 3 + Element Plus)
+├── start.sh         # One-click startup script
+└── README.md        # Project documentation
+```
 
 ## Features
 
-- Monitor all running Python processes in real-time
-- Start and stop Python scripts with one click
-- View detailed process information and resource usage
-- Real-time log streaming for running scripts
-- SSH connection to remote machines for script management
-- Web-based user interface for easy access
-- Configurable monitoring paths and exclusion patterns
-- System resource monitoring (CPU, memory, disk usage)
-- Interactive SSH console for remote server management
-- Authentication and user management
-- Responsive and modern web interface
-- Module-based architecture for easy maintenance
+1. **SSH Connection Management** - Manage multiple SSH connections with password and key-based authentication
+2. **WebSSH Terminal** - Use SSH terminal directly in the browser with color support
+3. **Local Script Management** - Manage local Python scripts with execution and output viewing
+4. **System Monitoring** - Real-time system resource monitoring (CPU, memory, disk)
+5. **Configuration Management** - Unified management of monitoring paths, SSH connections, and user authentication
 
 ## Prerequisites
 
+### Backend Requirements
 - Python 3.6+
-- pip (Python package installer)
+- pip package manager
 
-## Installation & Quick Start
+### Frontend Requirements
+- Node.js 12+
+- npm package manager
 
-### Method 1: Using the startup script (Recommended)
+## Quick Start
+
+### Using the Startup Script (Recommended)
 
 ```bash
-./run_monitor.sh
+# Clone the project and navigate to the directory
+cd monitor
+
+# Run the startup script (automatically checks and installs dependencies)
+./start.sh
 ```
 
-### Method 2: Manual installation
+The script will:
+1. Check and install backend Python dependencies
+2. Check and install frontend Node.js dependencies
+3. Start the backend service (default: http://127.0.0.1:5000)
+4. Start the frontend service (default: http://localhost:3000)
 
-1. Install dependencies:
+## Manual Installation
+
+### Backend Setup
+
 ```bash
+# Navigate to backend directory
+cd backend
+
+# (Optional) Create a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install Python dependencies
 pip install -r requirements.txt
-```
 
-2. Run the monitor:
-```bash
+# Start the backend service
 python run.py
 ```
 
-After starting the application, open your browser and navigate to `http://localhost:5000`
+Backend service will run at `http://127.0.0.1:5000`
 
-### Method 3: Running on a custom port
+### Frontend Setup
 
 ```bash
-python run.py -p 8080
+# Navigate to frontend directory
+cd frontend
+
+# Install frontend dependencies
+npm install
+
+# Start the frontend development server
+npm run dev
 ```
+
+Frontend service will run at `http://localhost:3000`
 
 ## Usage
 
-1. After starting the monitor, access the web interface at `http://localhost:5000`
-2. Login with default credentials (admin/123456) - change this after first login
-3. The "Local Script Management" tab shows running scripts and all Python scripts in configured monitor paths
-4. Use the "Start" button to launch a script
-5. Use the "Stop" button to terminate a running script
-6. Click "View Logs" to see script logs and process information
-7. Use the "Stream Logs" feature for real-time log monitoring
-8. Configure SSH connections in the "SSH Management" tab to manage remote scripts
-9. Use the interactive SSH console for remote server management
-10. Configure monitoring paths and exclusion patterns in the "Configuration Management" tab
-11. Change your password in the user menu
-
-## Configuration
-
-### Monitor Configuration
-
-The monitor can be configured via [monitor_config.json](monitor_config.json):
-
-- `monitor_paths`: List of paths to scan for Python scripts
-- `exclude_patterns`: Patterns for excluding files from monitoring
-
-Example configuration:
-```json
-{
-  "monitor_paths": [
-    ".",
-    "../scripts",
-    "../../projects"
-  ],
-  "exclude_patterns": [
-    "monitor.py",
-    "test_*.py",
-    "*_test.py"
-  ]
-}
-```
-
-### SSH Configuration
-
-SSH connections are configured in [ssh_config.json](ssh_config.json):
-
-Example configuration:
-```json
-{
-  "connections": [
-    {
-      "name": "Production Server",
-      "host": "192.168.1.100",
-      "port": 22,
-      "username": "user",
-      "auth_method": "password",
-      "password": "password",
-      "key_file": ""
-    }
-  ]
-}
-```
-
-### Authentication
-
-Default login credentials:
-- Username: `admin`
-- Password: `123456`
-
-Please change the password after first login for security reasons.
+1. After starting the services, access the frontend at `http://localhost:3000`
+2. Login with default credentials:
+   - Username: `admin`
+   - Password: `123456`
+3. Configure SSH connections, manage scripts, and monitor system resources
 
 ## Project Structure
 
 ```
-.
-├── run.py                  # Main application entry point
-├── run_monitor.sh          # Startup script
-├── requirements.txt        # Python dependencies
-├── monitor_config.json     # Monitor configuration
-├── ssh_config.json         # SSH configuration
-├── auth_config.json        # Authentication configuration
-├── app/                    # Application source code
-│   ├── __init__.py         # Application initialization
-│   ├── api/                # API endpoints
-│   │   ├── auth_api.py     # Authentication APIs
-│   │   ├── process_api.py  # Process management APIs
-│   │   ├── script_api.py   # Script management APIs
-│   │   ├── ssh_api.py      # SSH connection APIs
-│   │   ├── system_api.py   # System information APIs
-│   │   ├── config_api.py   # Configuration APIs
-│   │   └── ssh_websocket.py# SSH WebSocket handlers
-│   ├── models/             # Data models
-│   │   ├── process_logger.py # Process logging model
-│   │   └── ssh_connection.py # SSH connection model
-│   ├── utils/              # Utility functions
-│   │   ├── auth.py         # Authentication utilities
-│   │   ├── config_loader.py  # Configuration loading utilities
-│   │   └── process_manager.py# Process management utilities
-│   ├── static/             # Static files
-│   │   ├── css/            # Stylesheets
-│   │   │   ├── modules/    # Modular CSS files
-│   │   │   └── style.css   # Main stylesheet
-│   │   └── js/             # JavaScript files
-│   │       ├── modules/    # Modular JavaScript files
-│   │       └── main.js     # Main JavaScript logic
-│   └── templates/          # HTML templates
-│       ├── modules/        # Modular HTML templates
-│       ├── index.html      # Main interface
-│       └── login.html      # Login page
-├── script_logs/            # Script log files (auto-created)
-└── README.md               # This file
+monitor/
+├── backend/                    # Backend source code
+│   ├── app/                   # Flask application
+│   │   ├── api/              # API endpoints
+│   │   ├── models/           # Data models
+│   │   ├── utils/            # Utility functions
+│   │   └── __init__.py       # Application initialization
+│   ├── run.py                # Application entry point
+│   ├── requirements.txt      # Python dependencies
+│   └── config files          # JSON configuration files
+├── frontend/                 # Frontend source code
+│   ├── src/                  # Vue source code
+│   │   ├── assets/          # Static assets
+│   │   ├── components/      # Vue components
+│   │   ├── views/           # Page components
+│   │   ├── router/          # Router configuration
+│   │   └── main.js          # Application entry point
+│   ├── package.json         # Node.js dependencies
+│   └── vite.config.js       # Vite configuration
+├── start.sh                 # One-click startup script
+└── README.md               # Project documentation
 ```
 
-## API Endpoints
+## Technology Stack
+
+### Backend
+- **Python 3** - Programming language
+- **Flask** - Web framework
+- **Paramiko** - SSH library
+- **Psutil** - System monitoring library
+
+### Frontend
+- **Vue 3** - Progressive JavaScript framework
+- **Vite** - Build tool
+- **Element Plus** - Vue 3 component library
+- **Vue Router** - Routing management
+
+## API Documentation
+
+All backend APIs are RESTful and accessible under `/api/` prefix:
 
 ### Authentication
-- `/login` - Login page
-- `/api/auth/login` - Login API endpoint
-- `/api/auth/status` - Check authentication status
-- `/api/auth/change_password` - Change user password
-- `/logout` - Logout
-
-### Process Management
-- `/api/processes` - Get all running Python processes
-- `/api/kill` - Kill a running process by PID
-
-### Script Management
-- `/api/scripts` - Get all Python scripts in monitored paths
-- `/api/start` - Start a Python script
-- `/api/stop` - Stop a running script by PID
-- `/api/logs/<pid>` - Get logs for a specific process
-- `/api/logs/stream/<pid>` - Stream logs in real-time using Server-Sent Events
+- `POST /api/auth/login` - User login
+- `POST /api/auth/change_password` - Change password
+- `GET /api/auth/users` - Get user list
+- `POST /api/auth/add_user` - Add new user
+- `DELETE /api/auth/delete_user/<username>` - Delete user
 
 ### SSH Management
-- `/api/ssh/config` - Get or update SSH configuration
-- `/api/ssh/connect` - Establish SSH connection
-- `/api/ssh/disconnect` - Disconnect SSH session
-- `/api/ssh/system_info` - Get remote system information via SSH
-- `/api/ssh/test_connection` - Test SSH connection
-- `/api/ssh/save_connection` - Save SSH connection configuration
-- `/api/ssh/execute` - Execute command on SSH connection
+- `GET /api/ssh/config` - Get SSH configuration
+- `POST /api/ssh/save_connection` - Save SSH connection
+- `DELETE /api/ssh/delete_connection/<conn_name>` - Delete SSH connection
+- `POST /api/ssh/connect` - Establish SSH connection
+- `POST /api/ssh/disconnect` - Disconnect SSH connection
+- `GET /api/ssh/connections` - Get active connections
+
+### Script Management
+- `GET /api/scripts/list` - List Python scripts
+- `POST /api/scripts/run` - Run Python script
+- `GET /api/scripts/content` - Get script content
+- `POST /api/scripts/save` - Save script content
+- `POST /api/scripts/delete` - Delete script
+
+### Configuration
+- `GET /api/config/monitor` - Get monitor configuration
+- `POST /api/config/monitor` - Save monitor configuration
 
 ### System Information
-- `/api/system/info` - Get local system resource information
+- `GET /api/system/info` - Get system information
 
-### Configuration Management
-- `/api/config/monitor` - Get or update monitor configuration
+## Notes
 
-### WebSocket Endpoints
-- `/ws/ssh_shell/<conn_id>` - WebSocket endpoint for SSH shell
+1. The startup script automatically checks and installs required dependencies on first run
+2. Frontend and backend can be deployed independently
+3. All configuration data is stored in JSON files for easy management and migration
+4. Use Ctrl+C to gracefully stop all services when using the startup script
+5. For production deployment, consider using a production WSGI server for the backend
+# Python Script Monitor
 
-## User Interface
+A modern web-based tool for monitoring and managing Python scripts, featuring local script management and SSH remote server connectivity.
 
-The web interface is organized into four main tabs:
+## Table of Contents
 
-1. **System Information**
-   - CPU, memory, and disk usage monitoring
-   - Top CPU and memory consuming processes
-   - Ability to kill processes directly from the interface
-   - Auto-refresh and manual refresh options
+- [Architecture](#architecture)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Manual Installation](#manual-installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Technology Stack](#technology-stack)
+- [API Documentation](#api-documentation)
+- [Notes](#notes)
 
-2. **Local Script Management**
-   - System information panel (collapsible)
-   - Running scripts table with controls
-   - All scripts table with pagination
-   - Log viewer with real-time streaming capability
+## Architecture
 
-3. **SSH Remote Connection**
-   - SSH connection configuration form
-   - Saved connections list with connect/disconnect buttons
-   - Connection status indicators
-   - Remote system information display
-   - Interactive SSH console
+This project follows a modern frontend-backend separation architecture:
 
-4. **Configuration Management**
-   - Monitor paths configuration
-   - Exclusion patterns configuration
+```
+monitor/
+├── backend/          # Backend service (Python Flask API)
+├── frontend/         # Frontend interface (Vue 3 + Element Plus)
+├── start.sh         # One-click startup script
+└── README.md        # Project documentation
+```
 
-## Important Notes
+## Features
 
-- The tool can only manage Python scripts in configured paths
-- For security reasons, run this tool with regular user privileges
-- Log viewing shows process information and resource usage, not standard output logs for manually started processes
-- SSH functionality requires proper network connectivity and authentication
-- SSH console filters out ANSI escape sequences for better readability
-- Default credentials should be changed immediately after first login
+1. **SSH Connection Management** - Manage multiple SSH connections with password and key-based authentication
+2. **WebSSH Terminal** - Use SSH terminal directly in the browser with color support
+3. **Local Script Management** - Manage local Python scripts with execution and output viewing
+4. **System Monitoring** - Real-time system resource monitoring (CPU, memory, disk)
+5. **Configuration Management** - Unified management of monitoring paths, SSH connections, and user authentication
 
-## Dependencies
+## Prerequisites
 
-- [Flask 2.3.2](https://pypi.org/project/Flask/2.3.2/) - Web framework
-- [psutil 5.9.5](https://pypi.org/project/psutil/5.9.5/) - Process and system utilities
-- [paramiko 3.3.1](https://pypi.org/project/paramiko/3.3.1/) - SSH protocol library
-- [flask-sock 0.5.2](https://pypi.org/project/flask-sock/0.5.2/) - WebSocket support for Flask
+### Backend Requirements
+- Python 3.6+
+- pip package manager
 
-## Screenshots
+### Frontend Requirements
+- Node.js 12+
+- npm package manager
 
-![Main Interface](screenshots/main_interface.png)
-![SSH Management](screenshots/ssh_management.png)
-![Log Streaming](screenshots/log_streaming.png)
+## Quick Start
 
-*Note: Screenshots are for demonstration purposes. Actual interface may vary.*
+### Using the Startup Script (Recommended)
 
-## Troubleshooting
+```bash
+# Clone the project and navigate to the directory
+cd monitor
 
-### Common Issues
+# Run the startup script (automatically checks and installs dependencies)
+./start.sh
+```
 
-1. **Port already in use**: 
-   - Use a different port: `python run.py -p 8080`
-   - On macOS, disable AirPlay Receiver if using port 5000
+The script will:
+1. Check and install backend Python dependencies
+2. Check and install frontend Node.js dependencies
+3. Start the backend service (default: http://127.0.0.1:5000)
+4. Start the frontend service (default: http://localhost:3000)
 
-2. **Permission denied when starting scripts**:
-   - Ensure the user running the monitor has appropriate permissions
-   - Check file permissions of the scripts you're trying to run
+## Manual Installation
 
-3. **SSH connection issues**:
-   - Verify network connectivity to the remote server
-   - Check SSH credentials and firewall settings
-   - Ensure the remote server has SSH enabled
+### Backend Setup
 
-4. **Scripts not appearing in the interface**:
-   - Check monitor configuration paths
-   - Verify exclusion patterns are not filtering out your scripts
-   - Restart the monitor to refresh the script list
+```bash
+# Navigate to backend directory
+cd backend
 
+# (Optional) Create a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-## License
+# Install Python dependencies
+pip install -r requirements.txt
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+# Start the backend service
+python run.py
+```
 
-## Acknowledgments
+Backend service will run at `http://127.0.0.1:5000`
 
-- Thanks to all contributors who have helped to improve this tool
-- Special thanks to the open-source community for the libraries used in this project
+### Frontend Setup
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install frontend dependencies
+npm install
+
+# Start the frontend development server
+npm run dev
+```
+
+Frontend service will run at `http://localhost:3000`
+
+## Usage
+
+1. After starting the services, access the frontend at `http://localhost:3000`
+2. Login with default credentials:
+   - Username: `admin`
+   - Password: `123456`
+3. Configure SSH connections, manage scripts, and monitor system resources
+
+## Project Structure
+
+```
+monitor/
+├── backend/                    # Backend source code
+│   ├── app/                   # Flask application
+│   │   ├── api/              # API endpoints
+│   │   ├── models/           # Data models
+│   │   ├── utils/            # Utility functions
+│   │   └── __init__.py       # Application initialization
+│   ├── run.py                # Application entry point
+│   ├── requirements.txt      # Python dependencies
+│   └── config files          # JSON configuration files
+├── frontend/                 # Frontend source code
+│   ├── src/                  # Vue source code
+│   │   ├── assets/          # Static assets
+│   │   ├── components/      # Vue components
+│   │   ├── views/           # Page components
+│   │   ├── router/          # Router configuration
+│   │   └── main.js          # Application entry point
+│   ├── package.json         # Node.js dependencies
+│   └── vite.config.js       # Vite configuration
+├── start.sh                 # One-click startup script
+└── README.md               # Project documentation
+```
+
+## Technology Stack
+
+### Backend
+- **Python 3** - Programming language
+- **Flask** - Web framework
+- **Paramiko** - SSH library
+- **Psutil** - System monitoring library
+
+### Frontend
+- **Vue 3** - Progressive JavaScript framework
+- **Vite** - Build tool
+- **Element Plus** - Vue 3 component library
+- **Vue Router** - Routing management
+
+## API Documentation
+
+All backend APIs are RESTful and accessible under `/api/` prefix:
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/change_password` - Change password
+- `GET /api/auth/users` - Get user list
+- `POST /api/auth/add_user` - Add new user
+- `DELETE /api/auth/delete_user/<username>` - Delete user
+
+### SSH Management
+- `GET /api/ssh/config` - Get SSH configuration
+- `POST /api/ssh/save_connection` - Save SSH connection
+- `DELETE /api/ssh/delete_connection/<conn_name>` - Delete SSH connection
+- `POST /api/ssh/connect` - Establish SSH connection
+- `POST /api/ssh/disconnect` - Disconnect SSH connection
+- `GET /api/ssh/connections` - Get active connections
+
+### Script Management
+- `GET /api/scripts/list` - List Python scripts
+- `POST /api/scripts/run` - Run Python script
+- `GET /api/scripts/content` - Get script content
+- `POST /api/scripts/save` - Save script content
+- `POST /api/scripts/delete` - Delete script
+
+### Configuration
+- `GET /api/config/monitor` - Get monitor configuration
+- `POST /api/config/monitor` - Save monitor configuration
+
+### System Information
+- `GET /api/system/info` - Get system information
+
+## Notes
+
+1. The startup script automatically checks and installs required dependencies on first run
+2. Frontend and backend can be deployed independently
+3. All configuration data is stored in JSON files for easy management and migration
+4. Use Ctrl+C to gracefully stop all services when using the startup script
+5. For production deployment, consider using a production WSGI server for the backend
